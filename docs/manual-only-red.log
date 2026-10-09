@@ -1,0 +1,53 @@
+
+> intentledger@0.1.0 test:ui
+> node scripts/test-ui.mjs
+
+✔ ui_dashboard_fixture_metrics_and_story_are_visible (79.310417ms)
+✖ ui_manual_entry_points_have_no_playback_controls_or_timers (24.381208ms)
+✔ ui_manual_bridge_exports_evidence_and_resolves_accounting (90.825708ms)
+✔ ui_additional_protocols_show_execution_and_positions (111.939292ms)
+✖ ui_manual_navigation_preserves_classification_and_scenario (13.337292ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 3
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 829.753416
+
+✖ failing tests:
+
+test at .test-build/ui.test.mjs:1983:1
+✖ ui_manual_entry_points_have_no_playback_controls_or_timers (24.381208ms)
+  AssertionError [ERR_ASSERTION]: Playback player must be absent
+      at TestContext.<anonymous> (file:///Users/soya/myproject/solana-workshop/intentledger/.test-build/ui.test.mjs:1984:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at .test-build/ui.test.mjs:2039:1
+✖ ui_manual_navigation_preserves_classification_and_scenario (13.337292ms)
+  AssertionError [ERR_ASSERTION]: Button not found: Explore captured actions
+      at button (file:///Users/soya/myproject/solana-workshop/intentledger/.test-build/ui.test.mjs:1917:10)
+      at file:///Users/soya/myproject/solana-workshop/intentledger/.test-build/ui.test.mjs:1921:25
+      at process.env.NODE_ENV.exports.act (/Users/soya/myproject/solana-workshop/intentledger/node_modules/react/cjs/react.development.js:814:22)
+      at click (file:///Users/soya/myproject/solana-workshop/intentledger/.test-build/ui.test.mjs:1921:9)
+      at TestContext.<anonymous> (file:///Users/soya/myproject/solana-workshop/intentledger/.test-build/ui.test.mjs:2040:9)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

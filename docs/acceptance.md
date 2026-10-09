@@ -8,11 +8,11 @@ When Mayan の UI 意図、対応するウォレット要求、両チェーン�
 Then BRIDGE / SUCCESS / HIGH の意味レコードが生成される
 And 2取引は「Automatically classified」の1件にまとめられる
 
-Given デモが初期状態にある
-When Play Automated Demo を押す
-Then 約52秒で例外、意図、署名要求、実行、意味レコード、解決済み会計の順に表示される
-And Pause、Next step、Restart が使える
-And リロードせず繰り返し再生できる
+Given ダッシュボードを開いている
+When 会計画面から意図、ウォレット要求、実行結果を手動で確認し意味レコードを生成する
+Then 「Apply to accounting ledger」で分類済み会計に反映できる
+And 自動再生のボタン、固定プレーヤー、画面を自動で進めるタイマーは存在しない
+And 画面とシナリオを移動しても分類状態は保持される
 
 Given Jupiter / Kamino / Raydium を選択している
 When 意味レコードを表示する

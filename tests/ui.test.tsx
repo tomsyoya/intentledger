@@ -8,12 +8,10 @@ import App from "../src/App.tsx";
 
 let dom: JSDOM;
 let root: Root;
-let time = 0;
-let intervalCallback: (() => void) | undefined;
+let intervalStarts = 0;
 let savedBlob: Blob | undefined;
 let downloadedName = "";
 let clipboard = "";
-let scrollResets = 0;
 const html = () => dom.window.document.body;
 const text = () => html().textContent ?? "";
 function button(label: string) {
@@ -27,12 +25,6 @@ function button(label: string) {
 }
 async function click(label: string) {
   await act(async () => button(label).click());
-}
-async function advance(milliseconds: number) {
-  for (let remaining = milliseconds; remaining > 0; remaining -= 100) {
-    time += Math.min(remaining, 100);
-    await act(async () => intervalCallback?.());
-  }
 }
 beforeEach(async () => {
   dom = new JSDOM('<!doctype html><div id="root"></div>', {
@@ -56,23 +48,12 @@ beforeEach(async () => {
       },
     },
   });
-  time = 0;
-  intervalCallback = undefined;
+  intervalStarts = 0;
   savedBlob = undefined;
   downloadedName = "";
   clipboard = "";
-  scrollResets = 0;
-  mock.method(dom.window, "scrollTo", () => {
-    scrollResets++;
-  });
-  mock.method(performance, "now", () => time);
-  mock.method(dom.window, "setInterval", (callback: () => void) => {
-    intervalCallback = callback;
-    return 1;
-  });
-  mock.method(dom.window, "clearInterval", () => {
-    intervalCallback = undefined;
-  });
+  mock.method(dom.window, "setInterval", () => { intervalStarts++; return 1; });
+  mock.method(dom.window, "clearInterval", () => {});
   mock.method(URL, "createObjectURL", (blob: Blob) => {
     savedBlob = blob;
     return "blob:demo-record";
@@ -102,51 +83,18 @@ test("ui_dashboard_fixture_metrics_and_story_are_visible", () => {
   assert.match(text(), /No real funds moved/);
 });
 
-test("ui_automated_demo_completes_in_52_seconds_and_replays_twice", async () => {
-  for (let replay = 0; replay < 2; replay++) {
-    await click(replay ? "Replay" : "Play Automated Demo");
-    assert.match(text(), /Unclassified cross-chain activity/);
-    assert.equal(html().querySelectorAll(".review-row").length, 2);
-    await advance(6000);
-    assert.ok(html().querySelector(".exception-banner.highlighted"));
-    await advance(5000);
-    assert.match(text(), /Observed Intent/);
-    await advance(7000);
-    assert.match(text(), /What the wallet received/);
-    await advance(6000);
-    assert.match(text(), /SOURCE TRANSACTION/);
-    assert.match(text(), /DESTINATION TRANSACTION/);
-    await advance(8000);
-    assert.match(text(), /SEMANTIC RECORD GENERATED/);
-    assert.match(text(), /received 998.4 USDC/);
-    await advance(8000);
-    assert.equal(html().querySelectorAll(".grouped-row").length, 1);
-    assert.equal(html().querySelectorAll(".review-row").length, 0);
-    await advance(12000);
-    assert.ok(button("Replay"));
-    assert.match(text(), /0 unresolved exceptions/);
+test("ui_manual_entry_points_have_no_playback_controls_or_timers", async () => {
+  assert.ok(!html().querySelector(".demo-player"), "Playback player must be absent");
+  for (const element of html().querySelectorAll("button")) {
+    assert.doesNotMatch(element.textContent ?? "", /Run Demo|Play Automated Demo|Pause|Resume|Replay/);
+    assert.notEqual(element.getAttribute("aria-label"), "Restart");
+    assert.notEqual(element.getAttribute("aria-label"), "Next step");
   }
-});
-
-test("ui_pause_preserves_elapsed_time_next_step_and_restart", async () => {
-  await click("Play Automated Demo");
-  await advance(3000);
-  await click("Pause");
-  await advance(10000);
-  assert.equal(html().querySelector(".exception-banner.highlighted"), null);
-  await click("Resume");
-  await advance(2900);
-  assert.equal(html().querySelector(".exception-banner.highlighted"), null);
-  await advance(100);
-  assert.ok(html().querySelector(".exception-banner.highlighted"));
-  await click("Pause");
-  await click("Next step");
+  await click("View accounting ledger");
+  assert.equal(html().querySelectorAll(".review-row").length, 2);
+  await click("Capture the intent");
   assert.match(text(), /Observed Intent/);
-  assert.ok(button("Resume"));
-  await click("Restart");
-  assert.match(text(), /Unclassified cross-chain activity/);
-  assert.equal(html().querySelector(".grouped-row"), null);
-  assert.ok(button("Play Automated Demo"));
+  assert.equal(intervalStarts, 0);
 });
 
 test("ui_manual_bridge_exports_evidence_and_resolves_accounting", async () => {
@@ -194,12 +142,23 @@ test("ui_additional_protocols_show_execution_and_positions", async () => {
   assert.match(text(), /500 USDC and 3.5 SOL/);
 });
 
-test("ui_demo_starts_and_each_scene_scrolls_to_top", async () => {
-  await click("Play Automated Demo");
-  assert.ok(scrollResets >= 1);
-  assert.ok(html().querySelector(".main-shell.presentation"));
-  await advance(11000);
-  assert.ok(scrollResets >= 3);
+test("ui_manual_navigation_preserves_classification_and_scenario", async () => {
+  await click("Explore captured actions");
+  assert.match(text(), /Unclassified cross-chain activity/);
+  await click("Capture the intent");
+  await click("View wallet request");
+  await click("Follow execution");
+  await click("Generate semantic record");
+  await click("Apply to accounting ledger");
+  await click("IntentLedger overview");
+  assert.equal(html().querySelectorAll(".metric-card")[4].querySelector("strong")?.textContent, "0");
   await click("Jupiter action");
-  assert.equal(html().querySelector(".main-shell.presentation"), null);
+  await click("View wallet request");
+  assert.match(text(), /req-jupiter-001/);
+  await click("Accounting ledger");
+  assert.equal(html().querySelectorAll(".grouped-row").length, 1);
+  assert.equal(html().querySelectorAll(".review-row").length, 0);
+  await click("Inspect the semantic record");
+  assert.match(text(), /Bridged 1,000 USDC/);
+  assert.equal(intervalStarts, 0);
 });
