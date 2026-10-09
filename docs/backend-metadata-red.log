@@ -1,0 +1,5 @@
+--- FAIL: TestClient_metadata_rejects_invalid_errors_and_timestamps (0.00s)
+    client_test.go:182: invalid meta accepted: <nil>
+FAIL
+FAIL	intentledger/backend/internal/solana	0.374s
+FAIL
