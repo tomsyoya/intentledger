@@ -1,0 +1,41 @@
+
+> intentledger@0.1.0 test:unit
+> node --test tests/*.test.ts
+
+✔ classification_bridge_correlates_both_chains (0.505958ms)
+✔ classification_rejects_mismatched_wallet_request (0.526833ms)
+✔ classification_failed_execution_never_reports_success (0.114125ms)
+✔ fixtures_four_actions_have_seven_transactions_four_protocols (1.435375ms)
+✔ fixtures_solana_wallets_and_signatures_have_valid_base58_lengths (0.406333ms)
+node:internal/modules/esm/resolve:274
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/soya/myproject/solana-workshop/intentledger/src/api/solana.ts' imported from /Users/soya/myproject/solana-workshop/intentledger/tests/solana-api.test.ts
+    at finalizeResolution (node:internal/modules/esm/resolve:274:11)
+    at moduleResolve (node:internal/modules/esm/resolve:864:10)
+    at defaultResolve (node:internal/modules/esm/resolve:990:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:757:20)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:734:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:317:38)
+    at #link (node:internal/modules/esm/module_job:208:49) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/soya/myproject/solana-workshop/intentledger/src/api/solana.ts'
+}
+
+Node.js v24.10.0
+✖ tests/solana-api.test.ts (72.418625ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 5
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 94.252959
+
+✖ failing tests:
+
+test at tests/solana-api.test.ts:1:1
+✖ tests/solana-api.test.ts (72.418625ms)
+  'test failed'

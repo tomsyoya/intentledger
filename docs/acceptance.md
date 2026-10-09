@@ -22,3 +22,21 @@ Given GitHub Pages のリポジトリ配下にサイトが配置されている
 When ページを開いて各画面を移動し再読み込みする
 Then 外部API、認証、サーバーなしで動作する
 ```
+
+## Go / Solana RPC
+
+バックエンド開発者として、Go API 経由で Solana の公開データを取得したい。なぜなら、後で実際の実行証拠を会計レコードへ関連付けたいから。
+
+```gherkin
+Given Go API が devnet RPC に接続するよう設定されている
+When 残高、最近の署名、取引詳細を GET で要求する
+Then 対応する読み取り専用 Solana JSON-RPC が呼ばれる
+And lamports と slot を文字列で返し整数精度を保持する
+And 不正入力、未検出、タイムアウト、RPC障害を識別して返す
+
+Given Solana RPC 画面を開いている
+When 公開アドレスまたは署名を入力し取得ボタンを押す
+Then Go API の結果または明確なエラーを表示する
+And fixture 会計レコードと自動で混在しない
+And 画面を開くだけでは外部へ問い合わせない
+```

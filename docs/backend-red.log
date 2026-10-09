@@ -1,0 +1,16 @@
+intentledger/backend/internal/solana: no non-test Go files in /Users/soya/myproject/solana-workshop/intentledger/backend/internal/solana
+# intentledger/backend/internal/solana [intentledger/backend/internal/solana.test]
+internal/solana/client_test.go:16:84: undefined: Client
+internal/solana/client_test.go:17:21: undefined: NewClient
+internal/solana/client_test.go:34:164: undefined: ErrInvalidInput
+internal/solana/client_test.go:35:82: undefined: ErrInvalidInput
+internal/solana/client_test.go:36:114: undefined: ErrInvalidInput
+internal/solana/client_test.go:40:124: undefined: ErrInvalidResponse
+internal/solana/client_test.go:44:64: undefined: RPCError
+internal/solana/client_test.go:46:7: undefined: NewClient
+internal/solana/client_test.go:47:62: undefined: ErrUpstream
+internal/solana/client_test.go:47:98: undefined: ErrRateLimited
+internal/solana/client_test.go:47:98: too many errors
+FAIL	intentledger/backend/internal/api [build failed]
+FAIL	intentledger/backend/internal/solana [build failed]
+FAIL
