@@ -1,0 +1,42 @@
+
+> intentledger@0.1.0 test:unit
+> node --test tests/*.test.ts
+
+✔ classification_bridge_correlates_both_chains (0.504709ms)
+✔ classification_rejects_mismatched_wallet_request (0.2585ms)
+✔ classification_failed_execution_never_reports_success (0.0965ms)
+✔ fixtures_four_actions_have_seven_transactions_four_protocols (0.960791ms)
+✔ demo_sequence_lasts_fifty_two_seconds (0.064833ms)
+✔ demo_pause_next_restart_are_replayable (0.118416ms)
+✖ fixtures_solana_wallets_and_signatures_have_valid_base58_lengths (0.64625ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 6
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 78.234417
+
+✖ failing tests:
+
+test at tests/domain.test.ts:70:1
+✖ fixtures_solana_wallets_and_signatures_have_valid_base58_lengths (0.64625ms)
+  AssertionError [ERR_ASSERTION]: tx-kamino-1
+  
+  66 !== 64
+  
+      at TestContext.<anonymous> (file:///Users/soya/myproject/solana-workshop/intentledger/tests/domain.test.ts:85:41)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 66,
+    expected: 64,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
