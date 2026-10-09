@@ -8,9 +8,9 @@ Built as an interactive prototype for a **Colosseum hackathon**, it demonstrates
 
 **Prototype at a glance:** 4 user actions · 7 transactions · 4 protocols · Ethereum + Solana.
 
-The application runs entirely in the browser and can be hosted on GitHub Pages. No wallet connection, extension installation, backend, database, authentication, API key, or external RPC service is required.
+The accounting prototype runs entirely in the browser and can be hosted on GitHub Pages without a backend. An optional **Go API** adds read-only Solana devnet lookups from the **Solana RPC** workspace. No wallet connection, extension installation, database, authentication, or API key is required.
 
-> **Prototype scope:** All blockchain transactions, addresses, execution results, and evidence relationships are local fixtures. The application demonstrates the proposed workflow; it does not capture live dApp activity, sign transactions, or move funds.
+> **Prototype scope:** The accounting scenarios use local fixture transactions, addresses, execution results, and evidence relationships. The separate Solana RPC workspace fetches live public data through the Go API; those reads do not create semantic records or change fixture accounting. The application does not capture live dApp activity, sign transactions, or move funds.
 
 ## The problem
 
@@ -97,9 +97,24 @@ npm run preview -- --base /intentledger/ --port 4173
 
 Open `http://localhost:4173/intentledger/`.
 
+## Go Solana RPC backend
+
+Use **Go 1.23 or newer** and start the API in a separate terminal:
+
+```sh
+cd backend
+go run ./cmd/server
+```
+
+Open **Solana RPC** in the sidebar. The default API URL is `http://localhost:8080`. Enter a public devnet account address to retrieve native SOL balance and recent signatures, or enter a signature to inspect transaction execution and parsed JSON. Lookups run only when requested. The existing accounting scenarios remain available without the API.
+
+The Go service provides `getBalance`, `getSignaturesForAddress`, and `getTransaction` access through fixed GET endpoints. It validates input and RPC responses, preserves integer precision, and reports timeouts and upstream failures. GitHub Pages continues to host the static frontend; the optional Go service needs a separate host.
+
+See [backend/README.md](backend/README.md) for API examples, server flags, CORS configuration, testing, and the Go PATH/GOROOT mismatch encountered in this workspace.
+
 ## Architecture
 
-The application uses **React, TypeScript, and Vite**, with local CSS and bundled icons. Application state stays in memory. Runtime behavior does not depend on external services.
+The application uses **React, TypeScript, and Vite**, with local CSS and bundled icons. Application state stays in memory. Fixture accounting does not depend on external services. The optional live workspace calls the Go service, which queries Solana JSON-RPC.
 
 ```mermaid
 flowchart LR
@@ -113,6 +128,8 @@ flowchart LR
   R --> A[Grouped accounting ledger]
   R --> J[JSON export]
   N[Manual navigation and React state] --> U[Evidence screens]
+  L[Solana RPC workspace] --> G[Go read-only HTTP API]
+  G --> S[Solana devnet / localnet RPC]
   I --> U
   W --> U
   T --> U
@@ -124,6 +141,9 @@ flowchart LR
 | `src/types.ts`                 | Domain models and the `LedgerProvider` interface for future data sources            |
 | `src/fixtures.ts`              | Four local scenarios and the `fixtureProvider` adapter                              |
 | `src/domain.ts`                | Evidence correlation and semantic record generation                                 |
+| `backend/` | Go HTTP API, validated read-only Solana JSON-RPC client, and tests |
+| `src/api/solana.ts` | Typed frontend adapter for the Go API |
+| `src/screens/SolanaRPC.tsx` | Manual live account and transaction lookups |
 | `src/App.tsx`                  | Application state, manual navigation, and applying classification results           |
 | `src/screens/`                 | Dashboard, accounting ledger, intent, wallet request, execution, and record screens |
 | `src/components/ui.tsx`        | Shared badges, protocol marks, and evidence display components                      |
@@ -132,4 +152,4 @@ flowchart LR
 | `tests/`                       | Domain, manual interaction, and GitHub Pages asset tests                            |
 | `.github/workflows/deploy.yml` | Checks, production build, and GitHub Pages deployment                               |
 
-The UI currently consumes bundled fixtures synchronously. `LedgerProvider` and `fixtureProvider` define a boundary for future asynchronous data sources; RPC adapters are not implemented. The current correlation logic checks shared intent/request identifiers, wallet context, and chain references in the fixtures.
+Accounting screens consume bundled fixtures synchronously. `LedgerProvider` and `fixtureProvider` remain the boundary for future accounting data sources. The new Go RPC client and `src/api/solana.ts` adapter support independent live inspection. Correlating live data with observed intent and producing real semantic records remain future work; the current classifier checks shared identifiers, wallet context, and chain references in fixtures.

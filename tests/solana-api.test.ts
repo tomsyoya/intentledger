@@ -91,7 +91,20 @@ test("solana_api_signatures_and_transaction_preserve_raw_json", async () => {
   assert.equal((await api.transaction(sig)).data.rawJSON, rawJSON);
 });
 
-test('solana_api_rejects_unsafe_block_time_before_rendering', async () => {
-  const api = createSolanaAPI('http://localhost:8080', async () => Response.json(envelope([{ signature: '1'.repeat(64), slot: '1', err: null, memo: null, blockTime: 9007199254740000, confirmationStatus: 'confirmed' }])));
+test("solana_api_rejects_unsafe_block_time_before_rendering", async () => {
+  const api = createSolanaAPI("http://localhost:8080", async () =>
+    Response.json(
+      envelope([
+        {
+          signature: "1".repeat(64),
+          slot: "1",
+          err: null,
+          memo: null,
+          blockTime: 9007199254740000,
+          confirmationStatus: "confirmed",
+        },
+      ]),
+    ),
+  );
   await assert.rejects(api.signatures(address), /invalid response/i);
 });

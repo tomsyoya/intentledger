@@ -3086,3 +3086,220 @@ tbody tr:last-child td {
     transition: none !important;
   }
 }
+
+/* Optional read-only Solana workspace. */
+.rpc-workspace {
+  display: grid;
+  gap: 23px;
+}
+.rpc-intro {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 23px;
+  background: #f4f1fc;
+  border: 1px solid #e6dff6;
+  border-radius: 10px;
+  color: #79639b;
+}
+.rpc-intro > div {
+  flex: 1;
+}
+.rpc-intro strong {
+  font-size: 12px;
+}
+.rpc-intro p {
+  font-size: 11px;
+  line-height: 1.8;
+  color: #9687aa;
+  margin-top: 5px;
+}
+.rpc-connection-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 23px;
+}
+.rpc-connection-body > .button {
+  margin-top: 23px;
+}
+.rpc-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-width: 0;
+}
+.rpc-field label {
+  color: #84788f;
+  font-size: 10px;
+  font-weight: 600;
+}
+.rpc-field input {
+  display: block;
+  width: 100%;
+  background: #fcfbfe;
+  border: 1px solid #e2ddeb;
+  padding: 12px 13px;
+  border-radius: 7px;
+  font:
+    11px "SFMono-Regular",
+    Consolas,
+    monospace;
+  color: #665578;
+  min-width: 0;
+}
+.rpc-field input:focus {
+  outline: 2px solid #c2afea;
+  outline-offset: 1px;
+}
+.rpc-field input::placeholder {
+  color: #b1a7bc;
+  font-size: 10px;
+}
+.rpc-field small {
+  font-size: 9px;
+  color: #a296af;
+  line-height: 1.8;
+}
+.rpc-forms {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 23px;
+}
+.rpc-forms form {
+  padding: 23px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  height: calc(100% - 59px);
+}
+.rpc-forms form > .button {
+  align-self: flex-end;
+  margin-top: auto;
+}
+.rpc-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #fff5f2;
+  border: 1px solid #f1d6cc;
+  border-radius: 9px;
+  padding: 19px 22px;
+  color: #b16f57;
+}
+.rpc-error strong {
+  font-size: 12px;
+}
+.rpc-error p {
+  font-size: 11px;
+  line-height: 1.8;
+  margin-top: 5px;
+  overflow-wrap: anywhere;
+}
+.rpc-balance {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 30px;
+  padding: 23px;
+  border-bottom: 1px solid var(--line);
+}
+.rpc-balance > div {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  justify-content: center;
+}
+.rpc-balance > div > span {
+  font-size: 10px;
+  color: #a295af;
+}
+.rpc-balance strong {
+  font-size: 26px;
+  letter-spacing: -0.6px;
+  color: #655080;
+  overflow-wrap: anywhere;
+}
+.rpc-balance small {
+  font-size: 10px;
+  color: #a498ae;
+}
+.rpc-balance dl {
+  margin: 0;
+}
+.rpc-balance .detail {
+  grid-template-columns: 90px 1fr;
+}
+.rpc-history {
+  min-width: 600px;
+}
+.rpc-history td {
+  font-size: 10px;
+}
+.rpc-transaction-details {
+  padding: 4px 24px 12px;
+}
+.rpc-json-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 17px 24px;
+  color: #9382ab;
+  font-size: 10px;
+  border-top: 1px solid var(--line);
+}
+.rpc-json {
+  margin: 0;
+  background: #262735;
+  color: #b7c9c0;
+  font:
+    10px/1.9 "SFMono-Regular",
+    Consolas,
+    monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 460px;
+  overflow: auto;
+  padding: 24px;
+}
+@media (max-width: 1000px) {
+  .rpc-forms {
+    gap: 16px;
+  }
+  .rpc-balance {
+    grid-template-columns: 1fr;
+    gap: 13px;
+  }
+}
+@media (max-width: 780px) {
+  .rpc-forms {
+    grid-template-columns: 1fr;
+  }
+  .rpc-intro {
+    flex-wrap: wrap;
+  }
+  .rpc-intro > .badge {
+    margin-left: 34px;
+  }
+}
+@media (max-width: 560px) {
+  .rpc-connection-body {
+    flex-direction: column;
+  }
+  .rpc-connection-body > .button {
+    margin: 0;
+    align-self: flex-end;
+  }
+  .rpc-connection-body > .rpc-field {
+    width: 100%;
+  }
+  .rpc-intro {
+    padding: 18px;
+  }
+  .rpc-intro p {
+    font-size: 10px;
+  }
+  .rpc-balance strong {
+    font-size: 22px;
+  }
+}

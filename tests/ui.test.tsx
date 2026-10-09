@@ -180,41 +180,74 @@ async function fillRPC(id: string, value: string) {
   const input = dom.window.document.getElementById(id) as HTMLInputElement;
   assert.ok(input, `Input not found: ${id}`);
   await act(async () => {
-    Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, 'value')!.set!.call(input, value);
-    input.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
+    Object.getOwnPropertyDescriptor(
+      dom.window.HTMLInputElement.prototype,
+      "value",
+    )!.set!.call(input, value);
+    input.dispatchEvent(new dom.window.Event("input", { bubbles: true }));
   });
 }
-test('ui_rpc_loads_live_account_and_transaction_only_on_manual_request', async () => {
+test("ui_rpc_loads_live_account_and_transaction_only_on_manual_request", async () => {
   const requests: string[] = [];
-  const address = '11111111111111111111111111111111';
-  const signature = '1'.repeat(64);
-  mock.method(globalThis, 'fetch', async (input: RequestInfo | URL) => {
-    const url = String(input); requests.push(url);
-    const data = url.includes('/balance?') ? { address, lamports: '1000000001', sol: '1.000000001', slot: '123' }
-      : url.includes('/signatures?') ? [{ signature, slot: '123', err: null, memo: null, blockTime: null, confirmationStatus: 'confirmed' }]
-      : { signature, slot: '123', blockTime: null, status: 'confirmed', feeLamports: '5000', version: 1, rawJSON: '{"slot":123}' };
-    return Response.json({ data, cluster: 'devnet', commitment: 'confirmed' });
+  const address = "11111111111111111111111111111111";
+  const signature = "1".repeat(64);
+  mock.method(globalThis, "fetch", async (input: RequestInfo | URL) => {
+    const url = String(input);
+    requests.push(url);
+    const data = url.includes("/balance?")
+      ? { address, lamports: "1000000001", sol: "1.000000001", slot: "123" }
+      : url.includes("/signatures?")
+        ? [
+            {
+              signature,
+              slot: "123",
+              err: null,
+              memo: null,
+              blockTime: null,
+              confirmationStatus: "confirmed",
+            },
+          ]
+        : {
+            signature,
+            slot: "123",
+            blockTime: null,
+            status: "confirmed",
+            feeLamports: "5000",
+            version: 1,
+            rawJSON: '{"slot":123}',
+          };
+    return Response.json({ data, cluster: "devnet", commitment: "confirmed" });
   });
-  await click('Solana RPC');
+  await click("Solana RPC");
   assert.equal(requests.length, 0);
-  await fillRPC('rpc-address', address);
-  await click('Lookup account');
+  await fillRPC("rpc-address", address);
+  await click("Lookup account");
   assert.match(text(), /1.000000001 SOL/);
   assert.equal(requests.length, 2);
-  await click('Inspect transaction');
+  await click("Inspect transaction");
   assert.equal(requests.length, 3);
-  assert.ok(html().querySelector('.rpc-transaction'));
+  assert.ok(html().querySelector(".rpc-transaction"));
   assert.match(text(), /5,000 lamports/);
   assert.match(text(), /Live reads do not create semantic records/);
-  await click('Accounting ledger1');
-  assert.equal(html().querySelectorAll('.review-row').length, 2);
+  await click("Accounting ledger1");
+  assert.equal(html().querySelectorAll(".review-row").length, 2);
 });
-test('ui_rpc_shows_backend_errors_without_displaying_fixture_results', async () => {
-  mock.method(globalThis, 'fetch', async () => Response.json({ error: { code: 'TRANSACTION_NOT_FOUND', message: 'Transaction not found on this cluster.' } }, { status: 404 }));
-  await click('Solana RPC');
-  await fillRPC('rpc-signature', '1'.repeat(64));
-  await click('Get transaction');
+test("ui_rpc_shows_backend_errors_without_displaying_fixture_results", async () => {
+  mock.method(globalThis, "fetch", async () =>
+    Response.json(
+      {
+        error: {
+          code: "TRANSACTION_NOT_FOUND",
+          message: "Transaction not found on this cluster.",
+        },
+      },
+      { status: 404 },
+    ),
+  );
+  await click("Solana RPC");
+  await fillRPC("rpc-signature", "1".repeat(64));
+  await click("Get transaction");
   assert.match(text(), /Transaction not found on this cluster/);
-  assert.ok(!html().querySelector('.rpc-transaction'));
+  assert.ok(!html().querySelector(".rpc-transaction"));
   assert.ok(html().querySelector('[role="alert"]'));
 });

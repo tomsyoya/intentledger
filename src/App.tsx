@@ -11,6 +11,7 @@ import {
   Link2,
   Radio,
   ShieldCheck,
+  Server,
   Wallet,
   X,
 } from "lucide-react";
@@ -27,11 +28,13 @@ import {
   Execution,
 } from "./screens/Evidence.tsx";
 import { RecordView } from "./screens/Record.tsx";
+import { SolanaRPC } from "./screens/SolanaRPC.tsx";
 
 const screens: { id: Screen; label: string; icon: LucideIcon }[] = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "exceptions", label: "Accounting ledger", icon: Layers3 },
   { id: "record", label: "Semantic records", icon: FileCheck2 },
+  { id: "rpc", label: "Solana RPC", icon: Server },
 ];
 const layers: { id: Screen; label: string; icon: LucideIcon }[] = [
   { id: "intent", label: "Intent capture", icon: Radio },
@@ -43,6 +46,12 @@ const headings: Record<
   Screen,
   { title: string; eyebrow: string; description: string }
 > = {
+  rpc: {
+    title: "Read Solana, directly.",
+    eyebrow: "LIVE RPC WORKSPACE",
+    description:
+      "Inspect public blockchain data through the Go backend, one request at a time.",
+  },
   overview: {
     title: "DeFi, with context.",
     eyebrow: "WORKSPACE OVERVIEW",
@@ -189,7 +198,7 @@ export default function App() {
         <div className="sidebar-bottom">
           <div className="local-indicator">
             <span className="status-dot" />
-            All systems local<span className="mono">v0.1</span>
+            Fixture accounting<span className="mono">v0.1</span>
           </div>
           <p>
             No wallet needed.
@@ -209,7 +218,11 @@ export default function App() {
             Workspace
             <ChevronRight size={13} />
             <span>
-              {screen === "overview" ? "Overview" : scenario.intent.protocol}
+              {screen === "overview"
+                ? "Overview"
+                : screen === "rpc"
+                  ? "Solana RPC"
+                  : scenario.intent.protocol}
             </span>
             {screen !== "overview" && (
               <>
@@ -223,7 +236,7 @@ export default function App() {
           <div className="topbar-right">
             <span className="fixture-tag">
               <span className="status-dot" />
-              Fixture data
+              {screen === "rpc" ? "Live RPC workspace" : "Fixture data"}
             </span>
             <button
               className="avatar"
@@ -251,7 +264,7 @@ export default function App() {
               </button>
             )}
           </div>
-          {screen !== "overview" && (
+          {screen !== "overview" && screen !== "rpc" && (
             <div className="context-strip">
               <div className="context-protocol">
                 <ProtocolMark scenario={scenario} small />
@@ -267,7 +280,9 @@ export default function App() {
               <span className="fixture-label">Simulated · Oct 08, 2026</span>
             </div>
           )}
-          {screen === "overview" ? (
+          {screen === "rpc" ? (
+            <SolanaRPC />
+          ) : screen === "overview" ? (
             <Overview
               resolved={resolved}
               onSelect={choose}
@@ -397,9 +412,10 @@ export default function App() {
               disappears into raw blockchain data.
             </p>
             <p>
-              This interactive prototype runs entirely in your browser. All
-              transactions, addresses, matching relationships and execution
-              results are local fixtures. It does not connect a wallet or
+              The accounting examples use local fixture transactions, addresses,
+              execution results and evidence relationships. The optional Solana
+              RPC workspace makes read-only requests through a separately
+              running Go API. This application does not connect a wallet or
               perform transfers.
             </p>
             <div className="note">

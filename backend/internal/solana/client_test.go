@@ -177,10 +177,14 @@ func TestClient_endpoint_requires_http_url(t *testing.T) {
 }
 
 func TestClient_metadata_rejects_invalid_errors_and_timestamps(t *testing.T) {
- for _,meta:=range []string{`{"fee":5000,"err":false}`,`{"fee":5000,"err":5}`} {
-  c:=testClient(t,`{"jsonrpc":"2.0","id":1,"result":{"slot":1,"version":0,"meta":`+meta+`,"transaction":{"signatures":["`+signature+`"],"message":{}}}}`,nil)
-  if _,err:=c.GetTransaction(context.Background(),signature);!errors.Is(err,ErrInvalidResponse){t.Fatalf("invalid meta accepted: %v",err)}
- }
- c:=testClient(t,`{"jsonrpc":"2.0","id":1,"result":[{"signature":"`+signature+`","slot":1,"err":null,"memo":null,"blockTime":9223372036854775807,"confirmationStatus":"confirmed"}]}`,nil)
- if _,err:=c.GetSignatures(context.Background(),address,1);!errors.Is(err,ErrInvalidResponse){t.Fatal("unsafe timestamp accepted")}
+	for _, meta := range []string{`{"fee":5000,"err":false}`, `{"fee":5000,"err":5}`} {
+		c := testClient(t, `{"jsonrpc":"2.0","id":1,"result":{"slot":1,"version":0,"meta":`+meta+`,"transaction":{"signatures":["`+signature+`"],"message":{}}}}`, nil)
+		if _, err := c.GetTransaction(context.Background(), signature); !errors.Is(err, ErrInvalidResponse) {
+			t.Fatalf("invalid meta accepted: %v", err)
+		}
+	}
+	c := testClient(t, `{"jsonrpc":"2.0","id":1,"result":[{"signature":"`+signature+`","slot":1,"err":null,"memo":null,"blockTime":9223372036854775807,"confirmationStatus":"confirmed"}]}`, nil)
+	if _, err := c.GetSignatures(context.Background(), address, 1); !errors.Is(err, ErrInvalidResponse) {
+		t.Fatal("unsafe timestamp accepted")
+	}
 }

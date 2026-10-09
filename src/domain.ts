@@ -53,6 +53,7 @@ export function classify(scenario: Scenario): SemanticRecord {
   };
 }
 export type Screen =
+  | "rpc"
   | "overview"
   | "exceptions"
   | "intent"

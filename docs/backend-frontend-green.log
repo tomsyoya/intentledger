@@ -1,0 +1,46 @@
+
+> intentledger@0.1.0 test
+> npm run test:unit && npm run test:ui
+
+
+> intentledger@0.1.0 test:unit
+> node --test tests/*.test.ts
+
+✔ classification_bridge_correlates_both_chains (0.507292ms)
+✔ classification_rejects_mismatched_wallet_request (0.279125ms)
+✔ classification_failed_execution_never_reports_success (0.1075ms)
+✔ fixtures_four_actions_have_seven_transactions_four_protocols (1.106083ms)
+✔ fixtures_solana_wallets_and_signatures_have_valid_base58_lengths (0.483083ms)
+✔ solana_api_balance_preserves_strings_and_uses_go_endpoint (12.9205ms)
+✔ solana_api_errors_keep_http_status_and_api_code (0.465542ms)
+✔ solana_api_rejects_invalid_base_and_malformed_success_data (0.252333ms)
+✔ solana_api_network_failure_is_actionable_without_fixture_fallback (0.136666ms)
+✔ solana_api_signatures_and_transaction_preserve_raw_json (0.645167ms)
+✔ solana_api_rejects_unsafe_block_time_before_rendering (0.2195ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 99.564833
+
+> intentledger@0.1.0 test:ui
+> node scripts/test-ui.mjs
+
+✔ ui_dashboard_fixture_metrics_and_story_are_visible (287.614583ms)
+✔ ui_manual_entry_points_have_no_playback_controls_or_timers (404.069917ms)
+✔ ui_manual_bridge_exports_evidence_and_resolves_accounting (736.82475ms)
+✔ ui_additional_protocols_show_execution_and_positions (576.544125ms)
+✔ ui_manual_navigation_preserves_classification_and_scenario (155.784125ms)
+✔ ui_rpc_loads_live_account_and_transaction_only_on_manual_request (244.287708ms)
+✔ ui_rpc_shows_backend_errors_without_displaying_fixture_results (284.433458ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3233.424

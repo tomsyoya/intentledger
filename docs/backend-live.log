@@ -1,0 +1,6 @@
+=== RUN   TestClient_live_devnet_reads
+    live_test.go:24: Post "https://api.devnet.solana.com": dial tcp: lookup api.devnet.solana.com: no such host
+--- FAIL: TestClient_live_devnet_reads (0.01s)
+FAIL
+FAIL	intentledger/backend/internal/solana	0.317s
+FAIL
