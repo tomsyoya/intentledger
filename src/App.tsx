@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -9,23 +9,14 @@ import {
   Layers3,
   LayoutDashboard,
   Link2,
-  Pause,
-  Play,
   Radio,
-  RotateCcw,
   ShieldCheck,
   Wallet,
   X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { scenarios } from "./fixtures.ts";
-import {
-  amount,
-  classify,
-  DEMO_STEPS,
-  demoReducer,
-  initialDemoState,
-} from "./domain.ts";
+import { amount, classify } from "./domain.ts";
 import type { Screen } from "./domain.ts";
 import { Badge, ProtocolMark } from "./components/ui.tsx";
 import { Overview } from "./screens/Overview.tsx";
@@ -100,63 +91,25 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>("overview");
   const [selected, setSelected] = useState("mayan");
   const [resolved, setResolved] = useState(false);
-  const [demo, dispatch] = useReducer(demoReducer, initialDemoState);
   const [filter, setFilter] = useState<"all" | "review">("all");
   const [notice, setNotice] = useState("");
   const [about, setAbout] = useState(false);
   const scenario = scenarios.find((s) => s.id === selected)!;
   const record = classify(scenario);
-  const nextTick = useRef(0);
-  useEffect(() => {
-    if (!demo.playing) return;
-    nextTick.current = performance.now();
-    const interval = window.setInterval(() => {
-      const now = performance.now();
-      dispatch({ type: "TICK", delta: now - nextTick.current });
-      nextTick.current = now;
-    }, 100);
-    return () => window.clearInterval(interval);
-  }, [demo.playing]);
-  useEffect(() => {
-    if (!demo.active) return;
-    setScreen(DEMO_STEPS[demo.step].screen);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    if (demo.step >= 6) setResolved(true);
-  }, [demo.step, demo.active]);
   useEffect(() => {
     if (!notice) return;
     const timeout = window.setTimeout(() => setNotice(""), 3000);
     return () => window.clearTimeout(timeout);
   }, [notice]);
   const navigate = (page: Screen) => {
-    dispatch({ type: "RESTART" });
     if (page === "exceptions" || page === "resolved") setSelected("mayan");
     setScreen(page);
   };
   const choose = (id: string) => {
-    dispatch({ type: "RESTART" });
     setSelected(id);
     setScreen("intent");
   };
-  const play = () => {
-    if (!demo.active || demo.completed) {
-      setSelected("mayan");
-      setResolved(false);
-      setFilter("all");
-      dispatch({ type: "RESTART" });
-      setScreen("exceptions");
-    }
-    dispatch({ type: "PLAY" });
-  };
-  const restart = () => {
-    dispatch({ type: "RESTART" });
-    setSelected("mayan");
-    setResolved(false);
-    setFilter("all");
-    setScreen("exceptions");
-  };
   const finish = () => {
-    dispatch({ type: "RESTART" });
     setResolved(true);
     setScreen("resolved");
   };
@@ -171,14 +124,6 @@ export default function App() {
     URL.revokeObjectURL(url);
     setNotice("Semantic record exported");
   };
-  const progress =
-    ((DEMO_STEPS.slice(0, demo.step).reduce(
-      (sum, step) => sum + step.duration,
-      0,
-    ) +
-      demo.elapsed) /
-      52000) *
-    100;
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -199,9 +144,9 @@ export default function App() {
         <div className="workspace">
           <span className="workspace-avatar">IL</span>
           <span>
-            Demo workspace<small>Colosseum hackathon</small>
+            Local workspace<small>Colosseum hackathon</small>
           </span>
-          <Badge tone="purple">Demo</Badge>
+          <Badge tone="purple">Local</Badge>
         </div>
         <div className="nav-label">WORKSPACE</div>
         <nav aria-label="Main navigation">
@@ -258,7 +203,7 @@ export default function App() {
           </button>
         </div>
       </aside>
-      <div className={`main-shell ${demo.active ? "presentation" : ""}`}>
+      <div className="main-shell">
         <header className="topbar">
           <div className="breadcrumb">
             Workspace
@@ -283,7 +228,7 @@ export default function App() {
             <button
               className="avatar"
               onClick={() => setAbout(true)}
-              aria-label="About demo workspace"
+              aria-label="About workspace"
             >
               IL
             </button>
@@ -296,10 +241,15 @@ export default function App() {
               <h1>{headings[screen].title}</h1>
               <p className="page-description">{headings[screen].description}</p>
             </div>
-            <button className="button primary" onClick={play}>
-              <Play size={15} fill="currentColor" />
-              {screen === "overview" ? "Run Demo" : "Play Automated Demo"}
-            </button>
+            {screen === "overview" && (
+              <button
+                className="button primary"
+                onClick={() => navigate(resolved ? "resolved" : "exceptions")}
+              >
+                View accounting ledger
+                <ArrowRight size={15} />
+              </button>
+            )}
           </div>
           {screen !== "overview" && (
             <div className="context-strip">
@@ -320,7 +270,6 @@ export default function App() {
           {screen === "overview" ? (
             <Overview
               resolved={resolved}
-              onPlay={play}
               onSelect={choose}
               onLedger={() => navigate(resolved ? "resolved" : "exceptions")}
             />
@@ -354,7 +303,6 @@ export default function App() {
                 {screen === "exceptions" && (
                   <Accounting
                     resolved={false}
-                    highlighted={demo.active && demo.step === 1}
                     filter={filter}
                     onFilter={setFilter}
                     onCapture={() => navigate("intent")}
@@ -418,78 +366,6 @@ export default function App() {
             </span>
           </footer>
         </main>
-        <div className={`demo-player ${demo.active ? "running" : ""}`}>
-          <div className="demo-description">
-            <span className="demo-icon">
-              <Play size={16} fill="currentColor" />
-            </span>
-            <div>
-              <strong>
-                {demo.active
-                  ? DEMO_STEPS[demo.step].title
-                  : "See the full story in 52 seconds"}
-              </strong>
-              <p>
-                {demo.active
-                  ? DEMO_STEPS[demo.step].caption
-                  : "From a manual exception to a classified cross-chain bridge. One guided walkthrough."}
-              </p>
-            </div>
-          </div>
-          <div className="demo-controls">
-            {demo.active && (
-              <span className="demo-step">
-                {demo.completed ? "Complete" : `${demo.step + 1} / 8`}
-              </span>
-            )}
-            <button
-              className={`button ${demo.active ? "primary" : "dark"}`}
-              onClick={demo.playing ? () => dispatch({ type: "PAUSE" }) : play}
-            >
-              {demo.playing ? (
-                <Pause size={14} />
-              ) : (
-                <Play size={14} fill="currentColor" />
-              )}
-              {demo.playing
-                ? "Pause"
-                : demo.active
-                  ? demo.completed
-                    ? "Replay"
-                    : "Resume"
-                  : "Play Automated Demo"}
-            </button>
-            <button
-              className="icon-button"
-              onClick={restart}
-              aria-label="Restart"
-              title="Restart"
-            >
-              <RotateCcw size={17} />
-            </button>
-            <button
-              className="icon-button"
-              onClick={() => {
-                if (!demo.active) {
-                  setSelected("mayan");
-                  setResolved(false);
-                  dispatch({ type: "PLAY" });
-                  dispatch({ type: "PAUSE" });
-                }
-                dispatch({ type: "NEXT" });
-              }}
-              aria-label="Next step"
-              title="Next step"
-            >
-              <ChevronRight size={20} />
-            </button>
-          </div>
-          {demo.active && (
-            <div className="demo-progress">
-              <span style={{ width: `${progress}%` }} />
-            </div>
-          )}
-        </div>
       </div>
       {notice && (
         <div className="toast" role="status">
@@ -538,11 +414,11 @@ export default function App() {
               className="button primary"
               onClick={() => {
                 setAbout(false);
-                play();
+                navigate(resolved ? "resolved" : "exceptions");
               }}
             >
-              <Play size={15} />
-              Explore the demo
+              <ArrowRight size={15} />
+              Explore captured actions
             </button>
           </section>
         </div>

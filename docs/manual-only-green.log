@@ -1,0 +1,38 @@
+
+> intentledger@0.1.0 test
+> npm run test:unit && npm run test:ui
+
+
+> intentledger@0.1.0 test:unit
+> node --test tests/*.test.ts
+
+✔ classification_bridge_correlates_both_chains (0.490959ms)
+✔ classification_rejects_mismatched_wallet_request (0.283083ms)
+✔ classification_failed_execution_never_reports_success (0.106083ms)
+✔ fixtures_four_actions_have_seven_transactions_four_protocols (1.108292ms)
+✔ fixtures_solana_wallets_and_signatures_have_valid_base58_lengths (0.395333ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 74.719375
+
+> intentledger@0.1.0 test:ui
+> node scripts/test-ui.mjs
+
+✔ ui_dashboard_fixture_metrics_and_story_are_visible (73.563916ms)
+✔ ui_manual_entry_points_have_no_playback_controls_or_timers (46.152167ms)
+✔ ui_manual_bridge_exports_evidence_and_resolves_accounting (79.924458ms)
+✔ ui_additional_protocols_show_execution_and_positions (91.776667ms)
+✔ ui_manual_navigation_preserves_classification_and_scenario (66.411625ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 807.979083

@@ -336,7 +336,7 @@ button {
 .main-shell main {
   max-width: 1600px;
   margin: auto;
-  padding: 34px 40px 110px;
+  padding: 34px 40px 40px;
 }
 .page-heading {
   display: flex;
@@ -385,13 +385,6 @@ button {
 .button.primary:hover {
   background: #5d44c5;
   box-shadow: 0 3px 10px #6c52d730;
-}
-.button.dark {
-  background: #2d3040;
-  color: white;
-}
-.button.dark:hover {
-  background: #44475a;
 }
 .button.secondary {
   background: white;
@@ -928,76 +921,7 @@ tbody tr:last-child td {
   padding: 0 4px;
   color: #c6c7d0;
 }
-.demo-player {
-  position: fixed;
-  bottom: 0;
-  left: 244px;
-  right: 0;
-  min-height: 77px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 22px;
-  background: #fffefefa;
-  border-top: 1px solid #e6e4ef;
-  padding: 15px 40px;
-  z-index: 25;
-  backdrop-filter: blur(12px);
-}
-.demo-description {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  min-width: 0;
-}
-.demo-icon {
-  width: 33px;
-  height: 33px;
-  border-radius: 8px;
-  background: #f0edfb;
-  color: #9b84d6;
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-}
-.demo-description strong {
-  font-size: 11px;
-}
-.demo-description p {
-  font-size: 9px;
-  color: #9a9aa8;
-  margin-top: 6px;
-  line-height: 1.5;
-}
-.demo-controls {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  flex-shrink: 0;
-}
-.demo-controls .button {
-  font-size: 10px;
-}
-.demo-step {
-  font-size: 10px;
-  color: #8e83a5;
-  white-space: nowrap;
-  min-width: 38px;
-}
-.demo-progress {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 3px;
-  background: #efebf8;
-}
-.demo-progress > span {
-  display: block;
-  height: 100%;
-  background: var(--purple);
-  transition: width 0.12s linear;
-}
+
 .context-strip {
   background: #fff;
   border: 1px solid var(--line);
@@ -1112,15 +1036,6 @@ tbody tr:last-child td {
 .exception-banner > .badge {
   margin-left: auto;
 }
-.exception-banner.highlighted {
-  box-shadow: 0 0 0 4px #e8bf6450;
-  animation: exception-pulse 2s ease-in-out infinite;
-}
-@keyframes exception-pulse {
-  50% {
-    box-shadow: 0 0 0 6px #e8bf641f;
-  }
-}
 .exception-banner.success {
   background: #f0faf5;
   border-color: #cee7da;
@@ -1213,9 +1128,6 @@ tbody tr:last-child td {
 .review-row td:first-child {
   border-left: 3px solid #e2b059;
   padding-left: 20px;
-}
-.highlighted-row {
-  background: #fff7e6;
 }
 .confirmed-text {
   display: flex;
@@ -2161,11 +2073,7 @@ tbody tr:last-child td {
     padding-left: 28px;
     padding-right: 28px;
   }
-  .demo-player {
-    left: 220px;
-    padding-left: 28px;
-    padding-right: 28px;
-  }
+
   .hero-copy {
     padding: 29px;
   }
@@ -2274,9 +2182,6 @@ tbody tr:last-child td {
     max-width: 220px;
     line-height: 1.8;
   }
-  .demo-description p {
-    max-width: 420px;
-  }
 }
 @media (max-width: 1000px) {
   .sidebar {
@@ -2293,16 +2198,12 @@ tbody tr:last-child td {
   .main-shell {
     margin-left: 192px;
   }
-  .demo-player {
-    left: 192px;
-    padding: 13px 22px;
-    gap: 12px;
-  }
+
   .topbar {
     padding: 0 22px;
   }
   .main-shell main {
-    padding: 28px 22px 120px;
+    padding: 28px 22px 40px;
   }
   .workspace {
     padding: 10px 8px;
@@ -2546,22 +2447,7 @@ tbody tr:last-child td {
     font-size: 10px;
     padding: 10px;
   }
-  .demo-description p {
-    font-size: 8px;
-  }
-  .demo-description strong {
-    font-size: 10px;
-  }
-  .demo-controls {
-    gap: 5px;
-  }
-  .demo-controls .button {
-    padding: 9px 10px;
-    font-size: 9px;
-  }
-  .demo-icon {
-    display: none;
-  }
+
   .comparison > .panel {
     padding: 20px;
   }
@@ -2622,9 +2508,7 @@ tbody tr:last-child td {
   .main-shell {
     margin-left: 70px;
   }
-  .demo-player {
-    left: 70px;
-  }
+
   .metrics {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -2813,27 +2697,7 @@ tbody tr:last-child td {
   .comparison > .panel {
     min-height: 190px;
   }
-  .demo-description {
-    display: none;
-  }
-  .demo-player {
-    min-height: 64px;
-    justify-content: center;
-  }
-  .demo-controls {
-    width: 100%;
-    justify-content: center;
-    gap: 10px;
-  }
-  .demo-controls .button {
-    font-size: 10px;
-  }
-  .demo-step {
-    margin-right: auto;
-  }
-  .demo-controls > .button:first-of-type {
-    min-width: 135px;
-  }
+
   .exception-banner {
     padding: 20px;
     flex-wrap: wrap;
@@ -2892,7 +2756,7 @@ tbody tr:last-child td {
     height: 26px;
   }
   .main-shell main {
-    padding: 24px 16px 95px;
+    padding: 24px 16px 36px;
   }
   .page-heading {
     align-items: flex-start;
@@ -3207,22 +3071,7 @@ tbody tr:last-child td {
   .about-modal h2 {
     font-size: 23px;
   }
-  .demo-player {
-    padding: 12px 14px;
-  }
-  .demo-controls {
-    gap: 7px;
-  }
-  .demo-step {
-    font-size: 9px;
-    min-width: auto;
-  }
-  .demo-controls > .button:first-of-type {
-    min-width: 100px;
-  }
-  .demo-controls > .icon-button {
-    width: 28px;
-  }
+
   .toast {
     right: 15px;
     left: 85px;
@@ -3235,85 +3084,5 @@ tbody tr:last-child td {
   *::after {
     animation: none !important;
     transition: none !important;
-  }
-}
-
-/* Keep the complete evidence cards in view during desktop screen recordings. */
-@media (min-width: 1000px) {
-  .presentation main {
-    padding-top: 23px;
-  }
-  .presentation .page-heading {
-    margin-bottom: 18px;
-  }
-  .presentation .context-strip {
-    padding: 10px 16px;
-    margin-bottom: 15px;
-  }
-  .presentation .layer-tabs {
-    margin-bottom: 18px;
-  }
-  .presentation .layer-tabs > button {
-    padding-top: 12px;
-    padding-bottom: 12px;
-  }
-  .presentation .panel-title {
-    min-height: 51px;
-    padding-top: 14px;
-    padding-bottom: 14px;
-  }
-  .presentation .dapp-inner {
-    padding: 18px 26px;
-  }
-  .presentation .dapp-brand .protocol-mark {
-    width: 32px;
-    height: 32px;
-  }
-  .presentation .mock-tabs {
-    padding-top: 9px;
-    margin-bottom: 16px;
-  }
-  .presentation .asset-input {
-    padding: 13px 16px;
-  }
-  .presentation .asset-amount {
-    margin-top: 10px;
-  }
-  .presentation .asset-amount > strong {
-    font-size: 27px;
-  }
-  .presentation .observed-body {
-    padding: 16px 23px;
-  }
-  .presentation .detail {
-    padding-top: 10px;
-    padding-bottom: 10px;
-  }
-  .presentation .note {
-    margin-top: 14px;
-  }
-  .presentation .record-details .detail {
-    padding-top: 11px;
-    padding-bottom: 11px;
-  }
-  .presentation .record-summary {
-    padding-top: 22px;
-    padding-bottom: 22px;
-    margin-bottom: 19px;
-  }
-  .presentation .transaction-card {
-    padding-top: 19px;
-    padding-bottom: 19px;
-  }
-  .presentation .execution-assets {
-    padding-top: 18px;
-    padding-bottom: 18px;
-  }
-  .presentation .crosschain-label {
-    padding-top: 17px;
-    padding-bottom: 17px;
-  }
-  .presentation .page-footer {
-    display: none;
   }
 }

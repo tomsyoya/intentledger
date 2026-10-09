@@ -12,13 +12,11 @@ import { Badge, ChainMark, PanelTitle, TxHash } from "../components/ui.tsx";
 
 export function Accounting({
   resolved,
-  highlighted = false,
   filter,
   onFilter,
   onCapture,
 }: {
   resolved: boolean;
-  highlighted?: boolean;
   filter: "all" | "review";
   onFilter: (value: "all" | "review") => void;
   onCapture: () => void;
@@ -26,9 +24,7 @@ export function Accounting({
   const mayan = scenarios[0];
   return (
     <>
-      <section
-        className={`exception-banner ${resolved ? "success" : ""} ${highlighted ? "highlighted" : ""}`}
-      >
+      <section className={`exception-banner ${resolved ? "success" : ""}`}>
         <span className="exception-icon">
           {resolved ? <CheckCheck size={23} /> : <CircleHelp size={23} />}
         </span>
@@ -140,10 +136,7 @@ export function Accounting({
                         </tr>
                       )
                     : mayan.transactions.map((tx) => (
-                        <tr
-                          key={tx.id}
-                          className={`review-row ${highlighted ? "highlighted-row" : ""}`}
-                        >
+                        <tr key={tx.id} className="review-row">
                           <td>
                             14:32<small>08 Oct</small>
                           </td>

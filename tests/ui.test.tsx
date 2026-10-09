@@ -52,7 +52,10 @@ beforeEach(async () => {
   savedBlob = undefined;
   downloadedName = "";
   clipboard = "";
-  mock.method(dom.window, "setInterval", () => { intervalStarts++; return 1; });
+  mock.method(dom.window, "setInterval", () => {
+    intervalStarts++;
+    return 1;
+  });
   mock.method(dom.window, "clearInterval", () => {});
   mock.method(URL, "createObjectURL", (blob: Blob) => {
     savedBlob = blob;
@@ -84,9 +87,15 @@ test("ui_dashboard_fixture_metrics_and_story_are_visible", () => {
 });
 
 test("ui_manual_entry_points_have_no_playback_controls_or_timers", async () => {
-  assert.ok(!html().querySelector(".demo-player"), "Playback player must be absent");
+  assert.ok(
+    !html().querySelector(".demo-player"),
+    "Playback player must be absent",
+  );
   for (const element of html().querySelectorAll("button")) {
-    assert.doesNotMatch(element.textContent ?? "", /Run Demo|Play Automated Demo|Pause|Resume|Replay/);
+    assert.doesNotMatch(
+      element.textContent ?? "",
+      /Run Demo|Play Automated Demo|Pause|Resume|Replay/,
+    );
     assert.notEqual(element.getAttribute("aria-label"), "Restart");
     assert.notEqual(element.getAttribute("aria-label"), "Next step");
   }
@@ -151,7 +160,11 @@ test("ui_manual_navigation_preserves_classification_and_scenario", async () => {
   await click("Generate semantic record");
   await click("Apply to accounting ledger");
   await click("IntentLedger overview");
-  assert.equal(html().querySelectorAll(".metric-card")[4].querySelector("strong")?.textContent, "0");
+  assert.equal(
+    html().querySelectorAll(".metric-card")[4].querySelector("strong")
+      ?.textContent,
+    "0",
+  );
   await click("Jupiter action");
   await click("View wallet request");
   assert.match(text(), /req-jupiter-001/);

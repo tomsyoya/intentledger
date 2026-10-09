@@ -32,7 +32,7 @@ npm run dev
 表示された URL（通常 `http://localhost:5173/`）を開きます。
 
 ```sh
-npm test               # 分類・デモ状態 + React DOM 操作の回帰テスト
+npm test               # 分類 + React DOM 手動操作の回帰テスト
 npm run typecheck      # TypeScript / 未使用コード検査
 npm run build          # 型検査 + dist の本番ビルド
 npm run test:pages     # ビルド済みアセットの相対パス検証
@@ -48,17 +48,15 @@ npm run preview -- --base /intentledger/ --port 4173
 
 `http://localhost:4173/intentledger/` を開いてください。
 
-## デモ操作
+## 操作方法
 
-- **Run Demo / Play Automated Demo**: Mayan の8段階ストーリーを約52秒で自動再生します。
-- **Pause / Resume**: 現在の段階の経過時間を保持して停止・再開します。
-- **Restart**: Mayan の未分類状態へ戻します。続けて Play を押して再生します。
-- **Next step**: 次の段階へ進みます。一時停止中は停止を維持します。
-- **Replay**: 完了後、リロードなしで未分類状態から再生し直します。
-- サイドバーと証拠タブ: 各シナリオを手動で確認できます。手動ナビゲーションは自動再生を終了します。
+- **View accounting ledger / Explore captured actions**: 会計画面を開き、未分類の Ethereum 出金と Solana 入金を確認します。
+- **Capture the intent → View wallet request → Follow execution → Generate semantic record**: 各証拠を自分のペースで確認し、意味レコードを生成します。
+- **Apply to accounting ledger**: Mayan の2取引を1件の BRIDGE として分類し、解決済み会計へ反映します。
+- サイドバーと証拠タブ: Mayan、Jupiter、Kamino、Raydium と各レイヤーを自由に切り替えます。画面移動で分類状態は失われません。
 - **Export JSON / Copy**: 意味レコードをダウンロード・コピーします。エクスポートには意図、要求、全取引、証拠を含みます。
 
-プレゼンテーションは React 内の reducer とタイマーで実装しており、ブラウザー自動化を必要としません。録画中はタブを前面に保ってください。ブラウザーのタイマー抑制により、バックグラウンドでは所要時間が延びる場合があります。状態はメモリ内で管理し、リロード時に初期化されます。
+すべての画面遷移は手動操作で行います。自動再生、再生バー、再生タイマーはありません。状態はメモリ内で管理し、ページを再読み込みすると未分類の初期状態に戻ります。
 
 ## アーキテクチャ
 
@@ -74,7 +72,7 @@ flowchart LR
   C --> R[SemanticRecord]
   R --> A[Grouped accounting ledger]
   R --> J[JSON export]
-  D[React demo reducer / timer] --> U[Evidence screens]
+  D[User navigation / React state] --> U[Evidence screens]
   I --> U
   W --> U
   T --> U
@@ -85,8 +83,8 @@ flowchart LR
 | --- | --- |
 | `src/types.ts` | ドメインモデルと将来の取得インターフェース |
 | `src/fixtures.ts` | 4例のローカルデータと `fixtureProvider` |
-| `src/domain.ts` | 証拠の関連付け、意味レコード生成、8段階の状態遷移 |
-| `src/App.tsx` | アプリの状態、ナビゲーション、自動デモ制御 |
+| `src/domain.ts` | 証拠の関連付け、意味レコード生成 |
+| `src/App.tsx` | アプリの状態、手動ナビゲーション、分類結果の反映 |
 | `src/screens/` | ダッシュボード、会計、意図、要求、実行、意味レコード、解決済み画面 |
 | `src/components/ui.tsx` | 証拠バッジ・チェーン表示などの共通 UI |
 | `src/styles.css` | レスポンシブ UI、画面遷移、reduced-motion 対応 |
@@ -94,7 +92,7 @@ flowchart LR
 | `tests/` | 回帰テストと Pages アセット検証 |
 | `.github/workflows/deploy.yml` | テスト、ビルド、Pages 公開 |
 | `docs/acceptance.md` | ユーザーストーリー・Gherkin 受け入れ基準 |
-| `docs/tdd-red.log`, `docs/tdd-green.log` | テストの失敗 → 成功ログ |
+| `docs/manual-only-red.log`, `docs/manual-only-green.log` | 手動操作への変更の失敗 → 成功ログ |
 
 現在の UI はバンドル済み fixture を同期利用しています。`LedgerProvider` と `fixtureProvider` は将来非同期取得に置き換えるための境界で、RPC 接続は実装していません。相関処理は fixture 内の共有 ID・ウォレット・チェーンを検証します。
 
@@ -124,7 +122,7 @@ Vite の `base: './'` によりアセットはリポジトリ名に依存しま�
 ## 60–90秒の録画案
 
 - **0–10秒**: ダッシュボード。「DeFi の UI は意図を知っているが、会計ソフトにはトークンの移動しか残らない」と説明。
-- **10–62秒**: Play Automated Demo。未分類の2取引 → UI 意図 → wallet request → 両チェーンの実行 → JSON 意味レコード → 自動分類の順に見せます。
+- **10–62秒**: 会計画面を開き、各操作ボタンで未分類の2取引 → UI 意図 → wallet request → 両チェーンの実行 → JSON 意味レコード → 分類済み会計の順に進めます。
 - **62–77秒**: Jupiter と Raydium を選び、swap の実行差分や複数のトークン移動が1操作になることを紹介。
 - **77–90秒**: Mayan の意味レコードに戻り、JSON export と将来の extension／RPC／API 接続を説明。すべて fixture であることを一言添えます。
 

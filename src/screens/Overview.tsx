@@ -18,12 +18,10 @@ import { Badge, ProtocolMark, PanelTitle } from "../components/ui.tsx";
 
 export function Overview({
   resolved,
-  onPlay,
   onSelect,
   onLedger,
 }: {
   resolved: boolean;
-  onPlay: () => void;
   onSelect: (id: string) => void;
   onLedger: () => void;
 }) {
@@ -47,8 +45,8 @@ export function Overview({
             for DeFi accounting.
           </p>
           <div className="hero-actions">
-            <button className="button primary" onClick={onPlay}>
-              Run Demo
+            <button className="button primary" onClick={onLedger}>
+              Explore captured actions
               <ArrowRight size={15} />
             </button>
             <span>
@@ -272,7 +270,7 @@ export function Overview({
             <ArrowRight size={17} />
             <strong>1 clear action</strong>
           </div>
-          <button className="text-button" onClick={onPlay}>
+          <button className="text-button" onClick={() => onSelect("mayan")}>
             Follow the Mayan example
             <ArrowRight size={15} />
           </button>
