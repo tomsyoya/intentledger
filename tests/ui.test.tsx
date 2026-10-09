@@ -62,7 +62,9 @@ beforeEach(async () => {
   downloadedName = "";
   clipboard = "";
   scrollResets = 0;
-  mock.method(dom.window, "scrollTo", () => { scrollResets++; });
+  mock.method(dom.window, "scrollTo", () => {
+    scrollResets++;
+  });
   mock.method(performance, "now", () => time);
   mock.method(dom.window, "setInterval", (callback: () => void) => {
     intervalCallback = callback;
@@ -191,7 +193,6 @@ test("ui_additional_protocols_show_execution_and_positions", async () => {
   await click("Generate semantic record");
   assert.match(text(), /500 USDC and 3.5 SOL/);
 });
-
 
 test("ui_demo_starts_and_each_scene_scrolls_to_top", async () => {
   await click("Play Automated Demo");

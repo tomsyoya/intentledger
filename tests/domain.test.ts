@@ -67,8 +67,8 @@ test("demo_pause_next_restart_are_replayable", () => {
   }
 });
 
-test('fixtures_solana_wallets_and_signatures_have_valid_base58_lengths', () => {
-  const alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+test("fixtures_solana_wallets_and_signatures_have_valid_base58_lengths", () => {
+  const alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
   function decodedByteLength(value: string) {
     let integer = 0n;
     for (const char of value) {
@@ -77,12 +77,17 @@ test('fixtures_solana_wallets_and_signatures_have_valid_base58_lengths', () => {
       integer = integer * 58n + BigInt(index);
     }
     const leadingZeroes = value.match(/^1*/)?.[0].length ?? 0;
-    return (integer === 0n ? 0 : Math.ceil(integer.toString(2).length / 8)) + leadingZeroes;
+    return (
+      (integer === 0n ? 0 : Math.ceil(integer.toString(2).length / 8)) +
+      leadingZeroes
+    );
   }
   for (const scenario of scenarios) {
-    if (scenario.sourceChain === 'solana') assert.equal(decodedByteLength(scenario.intent.wallet), 32);
+    if (scenario.sourceChain === "solana")
+      assert.equal(decodedByteLength(scenario.intent.wallet), 32);
     for (const tx of scenario.transactions) {
-      if (tx.chain === 'solana') assert.equal(decodedByteLength(tx.hash), 64, tx.id);
+      if (tx.chain === "solana")
+        assert.equal(decodedByteLength(tx.hash), 64, tx.id);
       else assert.match(tx.hash, /^0x[a-f0-9]{64}$/);
     }
   }

@@ -1,0 +1,17 @@
+
+> intentledger@0.1.0 build
+> npm run typecheck && vite build
+
+
+> intentledger@0.1.0 typecheck
+> tsc --noEmit
+
+vite v7.1.10 building for production...
+transforming...
+✓ 1678 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.71 kB │ gzip:  0.41 kB
+dist/assets/index-C3Q9r3ac.css   43.58 kB │ gzip:  9.62 kB
+dist/assets/index-CWsQwSmC.js   254.17 kB │ gzip: 76.60 kB
+✓ built in 956ms
