@@ -2,132 +2,182 @@
 
 **Capture DeFi intent before it gets lost in the transaction.**
 
-DeFi の UI はユーザーが「何をしようとしているか」を知っています。しかし、後から取引を読む会計ソフトには、トークンの入出金しか見えないことがあります。IntentLedger は **UI の意図 → ウォレット要求 → オンチェーン実行 → 意味レコード** を関連付け、手動例外を減らすためのプロトタイプです。
+IntentLedger connects what users intended, what wallets signed, and what blockchains executed — producing structured semantic records for DeFi accounting.
 
-React・TypeScript・Vite で実装した完全静的サイトです。バックエンド、DB、認証、API キー、ウォレット、拡張機能、外部 RPC は不要です。フォントとアイコンもローカルで提供します。
+Built as an interactive prototype for a **Colosseum hackathon**, it demonstrates how preserving context at the point of interaction can help accounting tools classify DeFi activity across protocols and chains.
 
-## シナリオ
+**Prototype at a glance:** 4 user actions · 7 transactions · 4 protocols · Ethereum + Solana.
 
-| プロトコル | 操作 | 要求と結果 | 取引数 |
-| --- | --- | --- | --- |
-| Mayan Finance | BRIDGE | Ethereum 1,000 USDC → Solana 998.4 USDC | 2 |
-| Jupiter | SWAP | 5 SOL → 712.83 USDC、スリッページ 0.50% | 1 |
-| Kamino | DEPOSIT | 1,000 USDC 供給 → 985.22 kUSDC 受領単位・貸付ポジション | 2 |
-| Raydium | ADD_LIQUIDITY | 500 USDC + 3.5 SOL → 41.82 LP units | 2 |
+The application runs entirely in the browser and can be hosted on GitHub Pages. No wallet connection, extension installation, backend, database, authentication, API key, or external RPC service is required.
 
-計 **4 actions / 7 transactions / 4 protocols / 2 chains**。初期状態では Mayan のみ未解決で、他の3操作は分類済みです。Mayan を処理すると未解決例外は 1 → 0 になります。「3 protocols」という例示値は4つの要求シナリオに合わせて修正しています。
+> **Prototype scope:** All blockchain transactions, addresses, execution results, and evidence relationships are local fixtures. The application demonstrates the proposed workflow; it does not capture live dApp activity, sign transactions, or move funds.
 
-すべての取引ハッシュ、署名、アドレス、契約・プログラム識別子、時刻、実行結果、関連付けは **demo fixtures** です。実チェーンとの照合や外部 Explorer へのリンクは行いません。Kamino の交換率や Raydium の LP 単位も説明用です。HIGH confidence は、この fixture の証拠が揃っていることを示し、本番の判定精度を主張するものではありません。
+## The problem
 
-## ローカル実行
+A DeFi interface knows whether a user is swapping tokens, bridging assets, depositing into a lending reserve, or adding liquidity. That context can disappear after the transaction is submitted.
 
-Node.js **24** を使用してください（テストは Node の TypeScript 対応で実行します）。この README のある `intentledger` ディレクトリをプロジェクトルートにします。
+An accounting tool later sees contract interactions and token movements. It must reconstruct which movements belong together and what they mean. Cross-chain activity makes this especially difficult: an outgoing transfer on Ethereum and an incoming transfer on Solana can appear to be unrelated transactions that need manual review.
+
+## The solution
+
+IntentLedger preserves the connection between four layers:
+
+1. **Observed intent:** What the user asked the dApp to do.
+2. **Wallet request:** What the dApp sent to the wallet.
+3. **Onchain execution:** What the transaction actually executed, including results on another chain.
+4. **Semantic record:** A structured accounting interpretation with the supporting evidence attached.
+
+The intended outcome is fewer manual classification exceptions and a traceable explanation for each accounting action. This prototype demonstrates that outcome using deterministic fixtures; it does not measure production accuracy or time savings.
+
+## Try the prototype
+
+Start the application using the local setup below, then follow the Mayan example:
+
+1. Click **View accounting ledger** or **Explore captured actions**.
+2. Inspect the two independently listed transactions: **1,000 USDC outgoing on Ethereum** and **998.4 USDC incoming on Solana**. They are marked **Needs manual review**.
+3. Click **Capture the intent** to inspect the user's request to bridge 1,000 USDC through Mayan Finance.
+4. Click **View wallet request**, then **Follow execution**, to inspect the request and both confirmed fixture transactions.
+5. Click **Generate semantic record**. The result describes one `BRIDGE` action, with UI, wallet, and execution evidence attached.
+6. Click **Apply to accounting ledger**. The two transactions become one grouped entry marked **Automatically classified**.
+7. Inspect the before/after comparison, or open the record and use **Export JSON** or **Copy**.
+
+Use the sidebar to explore Jupiter, Kamino, and Raydium. Evidence tabs let you move between layers at your own pace. All navigation is manual; there is no automated playback. Classification state is preserved while navigating and resets when the page is refreshed.
+
+## Supported scenarios
+
+| Protocol      | Semantic action | Requested action and execution result                                        | Transactions |
+| ------------- | --------------- | ---------------------------------------------------------------------------- | ------------ |
+| Mayan Finance | `BRIDGE`        | Bridge 1,000 USDC from Ethereum to Solana; receive 998.4 USDC                | 2            |
+| Jupiter       | `SWAP`          | Swap 5 SOL; receive 712.83 USDC with a 0.50% slippage tolerance              | 1            |
+| Kamino        | `DEPOSIT`       | Supply 1,000 USDC; receive 985.22 kUSDC receipt units and a lending position | 2            |
+| Raydium       | `ADD_LIQUIDITY` | Supply 500 USDC + 3.5 SOL; receive 41.82 LP units                            | 2            |
+
+Mayan is the initial unresolved exception. The other three actions are pre-classified so reviewers can inspect additional examples. Classifying Mayan reduces unresolved exceptions from **1 to 0**.
+
+The examples also illustrate different accounting challenges: requested versus received amounts, resulting DeFi positions, setup transactions, and multiple token movements belonging to one user action.
+
+## Semantic output
+
+The Mayan record contains a human-readable summary:
+
+> Bridged 1,000 USDC from Ethereum to Solana via Mayan Finance and received 998.4 USDC.
+
+Its structured fields include the action, protocol, origin, source and destination chains, requested and received amounts, transaction references, status, confidence, and evidence. The full JSON export also includes the observed intent, wallet request, and all linked transactions.
+
+Evidence badges show **UI Observed**, **Wallet Request Matched**, **Source Tx Confirmed**, and **Destination Tx Confirmed**. `HIGH` confidence means the expected evidence is present in this fixture. It is not a claim of independently verified execution or production classification accuracy.
+
+## Local development
+
+Use **Node.js 24** and npm. The tests use Node's built-in TypeScript support.
+
+From the repository root containing this README and `package.json`:
 
 ```sh
-cd /Users/soya/myproject/solana-workshop/intentledger
 npm ci
 npm run dev
 ```
 
-表示された URL（通常 `http://localhost:5173/`）を開きます。
+Open the URL printed by Vite, usually `http://localhost:5173/`.
 
 ```sh
-npm test               # 分類 + React DOM 手動操作の回帰テスト
-npm run typecheck      # TypeScript / 未使用コード検査
-npm run build          # 型検査 + dist の本番ビルド
-npm run test:pages     # ビルド済みアセットの相対パス検証
-npm run format:check   # コード書式の検査
-npm run preview        # 本番ビルドのプレビュー
+npm test               # Classification and manual React DOM interaction tests
+npm run typecheck      # Strict TypeScript and unused-code checks
+npm run build          # Type-check and build the static site into dist/
+npm run test:pages     # Verify built assets resolve under a repository subpath
+npm run format:check   # Check code formatting
+npm run preview        # Preview the production build
 ```
 
-Pages と同じサブパスで確認する場合:
+To preview a GitHub Pages-style repository subpath:
 
 ```sh
+npm run build
 npm run preview -- --base /intentledger/ --port 4173
 ```
 
-`http://localhost:4173/intentledger/` を開いてください。
+Open `http://localhost:4173/intentledger/`.
 
-## 操作方法
+## Architecture
 
-- **View accounting ledger / Explore captured actions**: 会計画面を開き、未分類の Ethereum 出金と Solana 入金を確認します。
-- **Capture the intent → View wallet request → Follow execution → Generate semantic record**: 各証拠を自分のペースで確認し、意味レコードを生成します。
-- **Apply to accounting ledger**: Mayan の2取引を1件の BRIDGE として分類し、解決済み会計へ反映します。
-- サイドバーと証拠タブ: Mayan、Jupiter、Kamino、Raydium と各レイヤーを自由に切り替えます。画面移動で分類状態は失われません。
-- **Export JSON / Copy**: 意味レコードをダウンロード・コピーします。エクスポートには意図、要求、全取引、証拠を含みます。
-
-すべての画面遷移は手動操作で行います。自動再生、再生バー、再生タイマーはありません。状態はメモリ内で管理し、ページを再読み込みすると未分類の初期状態に戻ります。
-
-## アーキテクチャ
+The application uses **React, TypeScript, and Vite**, with local CSS and bundled icons. Application state stays in memory. Runtime behavior does not depend on external services.
 
 ```mermaid
 flowchart LR
-  F[Local TypeScript fixtures] --> P[LedgerProvider boundary]
-  P --> I[ObservedIntent]
-  P --> W[WalletRequest]
-  P --> T[OnchainTransaction]
-  I --> C[Correlation / classification]
+  F[Local TypeScript fixtures] --> I[ObservedIntent]
+  F --> W[WalletRequest]
+  F --> T[OnchainTransaction]
+  I --> C[Correlation and classification]
   W --> C
   T --> C
   C --> R[SemanticRecord]
   R --> A[Grouped accounting ledger]
   R --> J[JSON export]
-  D[User navigation / React state] --> U[Evidence screens]
+  N[Manual navigation and React state] --> U[Evidence screens]
   I --> U
   W --> U
   T --> U
   R --> U
 ```
 
-| ファイル | 役割 |
-| --- | --- |
-| `src/types.ts` | ドメインモデルと将来の取得インターフェース |
-| `src/fixtures.ts` | 4例のローカルデータと `fixtureProvider` |
-| `src/domain.ts` | 証拠の関連付け、意味レコード生成 |
-| `src/App.tsx` | アプリの状態、手動ナビゲーション、分類結果の反映 |
-| `src/screens/` | ダッシュボード、会計、意図、要求、実行、意味レコード、解決済み画面 |
-| `src/components/ui.tsx` | 証拠バッジ・チェーン表示などの共通 UI |
-| `src/styles.css` | レスポンシブ UI、画面遷移、reduced-motion 対応 |
-| `vite.config.ts` | React と相対 `base: './'` の一元設定 |
-| `tests/` | 回帰テストと Pages アセット検証 |
-| `.github/workflows/deploy.yml` | テスト、ビルド、Pages 公開 |
-| `docs/acceptance.md` | ユーザーストーリー・Gherkin 受け入れ基準 |
-| `docs/manual-only-red.log`, `docs/manual-only-green.log` | 手動操作への変更の失敗 → 成功ログ |
+| File                           | Responsibility                                                                      |
+| ------------------------------ | ----------------------------------------------------------------------------------- |
+| `src/types.ts`                 | Domain models and the `LedgerProvider` interface for future data sources            |
+| `src/fixtures.ts`              | Four local scenarios and the `fixtureProvider` adapter                              |
+| `src/domain.ts`                | Evidence correlation and semantic record generation                                 |
+| `src/App.tsx`                  | Application state, manual navigation, and applying classification results           |
+| `src/screens/`                 | Dashboard, accounting ledger, intent, wallet request, execution, and record screens |
+| `src/components/ui.tsx`        | Shared badges, protocol marks, and evidence display components                      |
+| `src/styles.css`               | Responsive layout, transitions, and reduced-motion support                          |
+| `vite.config.ts`               | React configuration and centralized relative asset base                             |
+| `tests/`                       | Domain, manual interaction, and GitHub Pages asset tests                            |
+| `.github/workflows/deploy.yml` | Checks, production build, and GitHub Pages deployment                               |
 
-現在の UI はバンドル済み fixture を同期利用しています。`LedgerProvider` と `fixtureProvider` は将来非同期取得に置き換えるための境界で、RPC 接続は実装していません。相関処理は fixture 内の共有 ID・ウォレット・チェーンを検証します。
+The UI currently consumes bundled fixtures synchronously. `LedgerProvider` and `fixtureProvider` define a boundary for future asynchronous data sources; RPC adapters are not implemented. The current correlation logic checks shared intent/request identifiers, wallet context, and chain references in the fixtures.
 
-実サービスでは拡張機能の UI 観測／wallet-provider イベントから `ObservedIntent` と `WalletRequest` を生成し、Solana RPC と EVM JSON-RPC／indexer から実行結果を取得します。サーバー側 Semantic Record API が、署名・取引内容・ブリッジメッセージ・実際のアセット変化を独立検証し、レコードを永続化します。許可制の観測、プライバシー配慮、誤分類のレビューを追加する必要があります。これらは本プロトタイプの範囲外です。
+## GitHub Pages deployment
 
-## GitHub Pages 公開
+1. Push **the contents of this project directory as the repository root**. `package.json` and `.github/` must be at the root of the GitHub repository.
+2. In **Settings → Pages → Build and deployment → Source**, select **GitHub Actions**.
+3. Push to `main`, or run **Actions → Deploy IntentLedger to GitHub Pages → Run workflow**.
+4. Open the deployment URL shown in the workflow's `github-pages` environment.
 
-1. **このディレクトリの内容をリポジトリルートとして** GitHub リポジトリへ push します。親フォルダをルートにしないでください。`package.json` と `.github/` が GitHub 上のルートにある構成です。
-2. GitHub の **Settings → Pages → Build and deployment → Source** を **GitHub Actions** にします。
-3. `main` へ push するか、**Actions → Deploy IntentLedger to GitHub Pages → Run workflow** を実行します。
-4. workflow の `github-pages` 環境に表示される URL を開きます。
+The workflow installs Node.js 24, runs `npm ci`, checks formatting, runs tests, builds the site, verifies relative asset paths, and deploys `dist/`. It uses GitHub's standard `GITHUB_TOKEN`; no manually configured secrets are needed.
 
-workflow は checkout → Node 24 → `npm ci` → テスト → 型検査・Vite build → 相対パス検証 → configure-pages → upload-pages-artifact → deploy-pages の順に実行します。GitHub 標準の `GITHUB_TOKEN` を使い、手動で登録するシークレットは不要です。ビルド対象は `dist` です。
+The workflow follows the [GitHub Pages custom workflow approach](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages), using `configure-pages@v5`, `upload-pages-artifact@v4`, and `deploy-pages@v4`.
 
-[GitHub 公式のカスタム Pages workflow](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages) に基づき、`configure-pages@v5`・`upload-pages-artifact@v4`・`deploy-pages@v4` を使用しています。
-
-URL は次の形式です。
+For a project repository, the published URL follows this pattern:
 
 ```text
-https://<GitHubユーザー名または組織名>.github.io/<リポジトリ名>/
+https://<owner>.github.io/<repository>/
 ```
 
-リポジトリ名が `intentledger` の場合は `https://<owner>.github.io/intentledger/`。`<owner>.github.io` というユーザーサイト専用リポジトリなら `https://<owner>.github.io/` になります。公開先の owner が未指定のため、現時点で確定した公開 URL はありません。
+For a repository named `intentledger`, it is `https://<owner>.github.io/intentledger/`. A user or organization site repository named `<owner>.github.io` uses `https://<owner>.github.io/` instead. A public deployment URL has not yet been configured.
 
-Vite の `base: './'` によりアセットはリポジトリ名に依存しません。画面の切り替えは React の状態で行い URL の pathname を変更しないため、Pages のサーバーリライトや SPA 用 `404.html` は不要です。
+Vite's `base: './'` keeps assets relative to the deployed location. Screen navigation does not change the URL pathname, so GitHub Pages does not need server-side rewrites or an SPA fallback page.
 
-## 60–90秒の録画案
+## Validation and limitations
 
-- **0–10秒**: ダッシュボード。「DeFi の UI は意図を知っているが、会計ソフトにはトークンの移動しか残らない」と説明。
-- **10–62秒**: 会計画面を開き、各操作ボタンで未分類の2取引 → UI 意図 → wallet request → 両チェーンの実行 → JSON 意味レコード → 分類済み会計の順に進めます。
-- **62–77秒**: Jupiter と Raydium を選び、swap の実行差分や複数のトークン移動が1操作になることを紹介。
-- **77–90秒**: Mayan の意味レコードに戻り、JSON export と将来の extension／RPC／API 接続を説明。すべて fixture であることを一言添えます。
+The current implementation passes **11 tests**: five domain tests, five React DOM interaction tests, and one production asset-path test. TypeScript checks, the production build, and formatting checks also pass. Tests cover the manual bridge flow, scenario selection, classification persistence during navigation, JSON copy/export, and the absence of playback controls and automatic navigation timers.
 
-## 検証と制限
+Tests were committed before implementation changes. Failure and success logs are retained in `docs/`, including `manual-only-red.log` and `manual-only-green.log`. Additional development verification notes are in [`docs/verification.md`](docs/verification.md) (Japanese).
 
-TDD の最初の失敗テストを先にコミットし、成功ログを保存しています。DOM 操作、型検査、ビルド、Pages パスの結果と、ブラウザーでの視覚確認の制限は `docs/verification.md` に記載しています。
+Real-browser visual inspection and a deployed GitHub Pages run have not been completed in the development environment because local server and browser access were restricted. React DOM tests and static asset checks do not replace those checks.
 
-本番の会計・税務判断、正確な手数料分解、ライブチェーンの検証、ウォレット署名、認証、DB、実拡張機能は実装していません。GitHub 公開にはリポジトリ作成／push と Pages 設定が必要です。
+The prototype does not implement live protocol integrations, a browser extension, authentication, a database, a production indexer, or a production accounting engine. All hashes, signatures, addresses, contract/program identifiers, timestamps, and matching relationships are fixtures. Kamino exchange rates and Raydium LP units are illustrative. Exact fee attribution and accounting or tax judgments are outside the prototype's scope.
+
+## Path to a live system
+
+The proposed next stage connects the existing domain models to:
+
+- **Browser extension capture events:** Observe permitted dApp interactions and wallet-provider requests to create `ObservedIntent` and `WalletRequest` records.
+- **Solana RPC and EVM JSON-RPC/indexers:** Retrieve transaction execution and asset changes.
+- **A backend Semantic Record API:** Independently verify transaction contents, bridge messages, and evidence relationships; persist records and expose them to accounting integrations.
+
+A live system would also need consent and privacy controls, robust correlation across protocols, confidence calibration, and a review workflow for incomplete or conflicting evidence. These are future work, separate from the working static prototype.
+
+## Suggested 60–90 second submission walkthrough
+
+- **0–10 seconds:** Introduce the dashboard and the loss of semantic context between a dApp interaction and accounting.
+- **10–60 seconds:** Manually follow the Mayan flow: two unclassified transactions → observed intent → wallet request → execution on both chains → semantic record → classified ledger.
+- **60–75 seconds:** Show Jupiter's requested versus executed result, or Raydium's multiple token movements grouped into one liquidity action.
+- **75–90 seconds:** Export the Mayan record and explain the planned capture, RPC, and API integrations. State that the current blockchain data is fixture-based.
