@@ -1,0 +1,8 @@
+# intentledger/backend/internal/config [intentledger/backend/internal/config.test]
+internal/config/config_test.go:12:12: undefined: Parse
+internal/config/config_test.go:19:12: undefined: Parse
+internal/config/config_test.go:21:11: undefined: Parse
+internal/config/config_test.go:23:11: undefined: Parse
+internal/config/config_test.go:28:15: undefined: Parse
+FAIL	intentledger/backend/internal/config [build failed]
+FAIL

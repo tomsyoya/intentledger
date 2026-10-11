@@ -40,3 +40,18 @@ Then Go API の結果または明確なエラーを表示する
 And fixture 会計レコードと自動で混在しない
 And 画面を開くだけでは外部へ問い合わせない
 ```
+
+## Deployment-specific RPC
+User story: 運用者として、環境設定だけで RPC を切り替えたい。コード変更なしに localnet と testnet を使い分けるため。
+
+Given APP_ENV is unset or local
+When the API starts
+Then cluster is localnet and endpoint is http://127.0.0.1:8899
+
+Given APP_ENV is online
+When the API starts
+Then cluster is testnet and endpoint is https://api.testnet.solana.com
+
+Given explicit cluster / RPC settings
+When configuration is resolved
+Then flags take precedence over environment variables and invalid settings fail startup

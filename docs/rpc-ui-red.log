@@ -1,0 +1,28 @@
+✔ solana_api_balance_preserves_strings_and_uses_go_endpoint (12.371208ms)
+✔ solana_api_errors_keep_http_status_and_api_code (0.293167ms)
+✔ solana_api_rejects_invalid_base_and_malformed_success_data (0.153541ms)
+✔ solana_api_network_failure_is_actionable_without_fixture_fallback (0.078375ms)
+✔ solana_api_signatures_and_transaction_preserve_raw_json (0.420084ms)
+✔ solana_api_rejects_unsafe_block_time_before_rendering (0.1315ms)
+✖ solana_api_accepts_testnet_cluster_from_backend (0.129459ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 6
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 76.298958
+
+✖ failing tests:
+
+test at ../tests/solana-api.test.ts:112:1
+✖ solana_api_accepts_testnet_cluster_from_backend (0.129459ms)
+  Error [APIError]: The Go API returned an invalid response.
+      at get (file:///Users/soya/myproject/solana-workshop/intentledger/src/api/solana.ts:163:15)
+      at async TestContext.<anonymous> (file:///Users/soya/myproject/solana-workshop/intentledger/tests/solana-api.test.ts:116:17)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    status: 502,
+    code: 'INVALID_RESPONSE'
+  }
