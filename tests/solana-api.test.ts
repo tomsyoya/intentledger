@@ -111,7 +111,11 @@ test("solana_api_rejects_unsafe_block_time_before_rendering", async () => {
 
 test("solana_api_accepts_testnet_cluster_from_backend", async () => {
   const api = createSolanaAPI("http://localhost:8080", async () =>
-    Response.json({data: {status: "ok"}, cluster: "testnet", commitment: "confirmed"}),
+    Response.json({
+      data: { status: "ok" },
+      cluster: "testnet",
+      commitment: "confirmed",
+    }),
   );
   assert.equal((await api.health()).cluster, "testnet");
 });

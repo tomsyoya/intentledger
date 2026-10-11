@@ -1,0 +1,4 @@
+	intentledger/backend/cmd/server		coverage: 0.0% of statements
+ok  	intentledger/backend/internal/api	1.294s	coverage: 98.3% of statements
+ok  	intentledger/backend/internal/config	1.259s	coverage: 96.9% of statements
+ok  	intentledger/backend/internal/solana	1.303s	coverage: 88.1% of statements

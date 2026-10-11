@@ -112,8 +112,8 @@ export function SolanaRPC() {
         <div>
           <strong>Read-only Solana access</strong>
           <p>
-            Query public devnet data through your Go API. Live reads do not
-            create semantic records or change fixture accounting.
+            Query your configured Solana cluster through your Go API. Live reads
+            do not create semantic records or change fixture accounting.
           </p>
         </div>
         <Badge tone="purple">Optional backend</Badge>
@@ -185,7 +185,7 @@ export function SolanaRPC() {
                 id="rpc-address"
                 value={address}
                 maxLength={88}
-                placeholder="Paste a Solana devnet address"
+                placeholder="Paste an address on the configured cluster"
                 spellCheck={false}
                 autoComplete="off"
                 required

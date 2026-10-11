@@ -8,7 +8,7 @@ Built as an interactive prototype for a **Colosseum hackathon**, it demonstrates
 
 **Prototype at a glance:** 4 user actions · 7 transactions · 4 protocols · Ethereum + Solana.
 
-The accounting prototype runs entirely in the browser and can be hosted on GitHub Pages without a backend. An optional **Go API** adds read-only Solana devnet lookups from the **Solana RPC** workspace. No wallet connection, extension installation, database, authentication, or API key is required.
+The accounting prototype runs entirely in the browser and can be hosted on GitHub Pages without a backend. An optional **Go API** adds read-only Solana lookups on a deployment-configured cluster from the **Solana RPC** workspace. No wallet connection, extension installation, database, authentication, or API key is required.
 
 > **Prototype scope:** The accounting scenarios use local fixture transactions, addresses, execution results, and evidence relationships. The separate Solana RPC workspace fetches live public data through the Go API; those reads do not create semantic records or change fixture accounting. The application does not capture live dApp activity, sign transactions, or move funds.
 
@@ -106,7 +106,7 @@ cd backend
 go run ./cmd/server
 ```
 
-Open **Solana RPC** in the sidebar. The default API URL is `http://localhost:8080`. Enter a public devnet account address to retrieve native SOL balance and recent signatures, or enter a signature to inspect transaction execution and parsed JSON. Lookups run only when requested. The existing accounting scenarios remain available without the API.
+Open **Solana RPC** in the sidebar. The default API URL is `http://localhost:8080`. Enter a public account address on the configured cluster to retrieve native SOL balance and recent signatures, or enter a signature to inspect transaction execution and parsed JSON. Lookups run only when requested. The existing accounting scenarios remain available without the API.
 
 The Go service provides `getBalance`, `getSignaturesForAddress`, and `getTransaction` access through fixed GET endpoints. It validates input and RPC responses, preserves integer precision, and reports timeouts and upstream failures. GitHub Pages continues to host the static frontend; the optional Go service needs a separate host.
 
@@ -129,7 +129,7 @@ flowchart LR
   R --> J[JSON export]
   N[Manual navigation and React state] --> U[Evidence screens]
   L[Solana RPC workspace] --> G[Go read-only HTTP API]
-  G --> S[Solana devnet / localnet RPC]
+  G --> S[Solana localnet / testnet / devnet RPC]
   I --> U
   W --> U
   T --> U
@@ -153,3 +153,5 @@ flowchart LR
 | `.github/workflows/deploy.yml` | Checks, production build, and GitHub Pages deployment                               |
 
 Accounting screens consume bundled fixtures synchronously. `LedgerProvider` and `fixtureProvider` remain the boundary for future accounting data sources. The new Go RPC client and `src/api/solana.ts` adapter support independent live inspection. Correlating live data with observed intent and producing real semantic records remain future work; the current classifier checks shared identifiers, wallet context, and chain references in fixtures.
+
+RPC deployment configuration: the Go API defaults to a local validator. Set `APP_ENV=online` for testnet; see [backend configuration](backend/README.md#環境ごとの設定).

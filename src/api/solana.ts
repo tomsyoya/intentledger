@@ -1,6 +1,6 @@
 export interface APIResult<T> {
   data: T;
-  cluster: "devnet" | "localnet";
+  cluster: "devnet" | "localnet" | "testnet";
   commitment: "confirmed";
 }
 export interface LiveBalance {
@@ -156,7 +156,9 @@ export function createSolanaAPI(
       }
       if (
         !object(payload) ||
-        (payload.cluster !== "devnet" && payload.cluster !== "localnet") ||
+        (payload.cluster !== "devnet" &&
+          payload.cluster !== "localnet" &&
+          payload.cluster !== "testnet") ||
         payload.commitment !== "confirmed" ||
         !validate(payload.data)
       )

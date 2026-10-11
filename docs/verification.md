@@ -47,3 +47,10 @@ React DOM テストでは、実際のボタンをクリックし、画面遷移�
 Go API は別ホストで稼働させる構成です。この変更で公開先への push や Pages／API デプロイは実施していません。
 
 ホストでは `go` バイナリが1.17.8、GOROOT が1.27.0で不一致でした。環境を変更せず、インストール済み `$GOROOT/bin/go` と対応する gofmt を使って検証しました。詳細は `backend/README.md` に記載しています。API handler は98.3%、RPC client は88.1%の statement coverage でした。
+
+## RPC deployment configuration
+- TDD: 144ea40 records failing configuration / testnet response tests; rpc-config-red.log and rpc-ui-red.log retain failures.
+- Configuration suite, Go race/coverage tests, go vet and Go build passed (rpc-config-green.log).
+- Frontend: 12 unit + 7 UI tests passed (rpc-frontend-green.log).
+- TypeScript, production build and Pages subpath test passed.
+- No live localnet/testnet connection or deployment was performed in this change.

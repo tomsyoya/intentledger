@@ -1,6 +1,6 @@
 # IntentLedger Go API
 
-Go 標準ライブラリだけで実装した、読み取り専用 Solana JSON-RPC バックエンドです。追加モジュール、DB、認証、ウォレット、秘密鍵、API キーは不要です。既定の接続先は公開 devnet RPC `https://api.devnet.solana.com`、commitment は `confirmed` です。
+Go 標準ライブラリだけで実装した、読み取り専用 Solana JSON-RPC バックエンドです。追加モジュール、DB、認証、ウォレット、秘密鍵、API キーは不要です。既定の接続先はローカル validator `http://127.0.0.1:8899`、commitment は `confirmed` です。
 
 ## 起動
 
@@ -13,7 +13,7 @@ go run ./cmd/server
 
 `http://127.0.0.1:8080` で起動します。別ターミナルでリポジトリルートから `npm run dev` を実行し、サイドバーの **Solana RPC** を開きます。API server URL の既定値は `http://localhost:8080` です。公開アドレスで **Lookup account**、署名で **Get transaction** を押すと Go API を照会します。
 
-会計例の合成アドレス・署名は実取引ではありません。実在する devnet の公開アドレス／署名を入力してください。アカウントとして `11111111111111111111111111111111`（System Program）も照会できます。これはウォレットではなくプログラムアカウントで、SOL 残高は0でも正常です。
+会計例の合成アドレス・署名は実取引ではありません。接続中のクラスタに存在する公開アドレス／署名を入力してください。アカウントとして `11111111111111111111111111111111`（System Program）も照会できます。これはウォレットではなくプログラムアカウントで、SOL 残高は0でも正常です。
 
 ビルドして起動する場合:
 
@@ -61,7 +61,7 @@ curl 'http://localhost:8080/api/v1/solana/signatures?address=1111111111111111111
     "sol": "0",
     "slot": "123"
   },
-  "cluster": "devnet",
+  "cluster": "localnet",
   "commitment": "confirmed"
 }
 ```
@@ -96,26 +96,45 @@ curl 'http://localhost:8080/api/v1/solana/signatures?address=1111111111111111111
 
 RPC リクエストには10秒の期限があり、レスポンスサイズは2 MiBまでです。JSON-RPC version／request ID、整数、必須フィールド、実行エラー形式、timestamp を検証します。プロバイダーの内部エラーメッセージは HTTP レスポンスへ転送しません。画面のリクエストにも12秒の期限があり、画面移動や入力変更時にはキャンセルし、古い結果の上書きを防ぎます。
 
-## 設定
+## 環境ごとの設定
+
+| APP_ENV / -env | 既定クラスタ | 既定 RPC |
+| --- | --- | --- |
+| local（未指定時） | localnet | http://127.0.0.1:8899 |
+| online | testnet | https://api.testnet.solana.com |
+
+ローカルでは別ターミナルで `solana-test-validator` を起動してください（Solana CLI は別途必要です）。
 
 ```sh
-go run ./cmd/server \
-  -listen 127.0.0.1:8080 \
-  -rpc-url https://api.devnet.solana.com \
-  -cluster devnet \
-  -allowed-origins http://localhost:5173,http://127.0.0.1:5173
+# ローカル
+APP_ENV=local go run ./cmd/server
+
+# オンライン環境
+APP_ENV=online HTTP_LISTEN=:8080 ALLOWED_ORIGINS=https://<owner>.github.io go run ./cmd/server
+
+# フラグでも指定可能
+go run ./cmd/server -env online
+
+# devnet も明示指定で引き続き利用可能
+SOLANA_CLUSTER=devnet go run ./cmd/server
 ```
 
-- `-listen`: 既定はローカルのみ。コンテナ等で外部受付が必要な場合は `:8080` 等を指定します。
-- `-rpc-url`: 自前の devnet RPC やローカル validator の URL に変更できます。クラスタの実際の接続先とラベルを一致させてください。
-- `-cluster`: `devnet` または `localnet`。本変更は mainnet を対象にしていません。
-- `-allowed-origins`: 完全一致の origin をカンマ区切りで指定します。パスや末尾 `/` は含めません。`Origin` ヘッダーのない curl 等は利用できます。CORS は認証機能ではありません。
+優先順位は **フラグ > 対応する環境変数 > 環境に応じた既定値** です。
+環境は自動推測せず、デプロイ先で `APP_ENV=online` を設定します。
 
-Localnet の例（validator 自体はこのリポジトリに含みません）:
+| 環境変数 | フラグ | 内容 |
+| --- | --- | --- |
+| APP_ENV | -env | local / online |
+| SOLANA_CLUSTER | -cluster | localnet / devnet / testnet。指定するとクラスタの既定 URL も切り替わる |
+| SOLANA_RPC_URL | -rpc-url | 独自 RPC URL。クラスタラベルと実際の接続先を一致させること |
+| HTTP_LISTEN | -listen | 既定127.0.0.1:8080。コンテナ等では :8080 |
+| ALLOWED_ORIGINS | -allowed-origins | カンマ区切りの完全一致 origin。既定 localhost:5173 / 127.0.0.1:5173 |
 
-```sh
-go run ./cmd/server -cluster localnet -rpc-url http://127.0.0.1:8899
-```
+空の環境変数は未設定として扱います。不正な環境名・クラスタ・URL は起動時にエラーとなります。
+`SOLANA_RPC_URL` を独自指定した場合、その URL のクラスタは自動検証しません。
+CORS は認証機能ではありません。Origin ヘッダーのない curl 等は利用できます。
+
+testnet の公開 RPC は [Solana 公式資料](https://solana.com/docs/references/clusters) の接続先を使用します。
 
 ## GitHub Pages と組み合わせる
 
@@ -153,11 +172,12 @@ go test -run TestClient_live_devnet_reads -v ./internal/solana -args -live-rpc
 flowchart LR
   UI[React Solana RPC workspace] --> A[Go GET API]
   A --> C[Read-only JSON-RPC client]
-  C --> S[Solana devnet / localnet RPC]
+  C --> S[Solana localnet / testnet / devnet RPC]
   S --> V[Validate / preserve exact values]
   V --> A
 ```
 
+- `internal/config/config.go`: 環境設定と優先順位の解決。
 - `cmd/server/main.go`: フラグ、HTTP timeout、SIGINT／SIGTERM 時の終了処理。
 - `internal/api/handler.go`: 固定ルート、CORS、API エラー。
 - `internal/solana/client.go`: リクエスト、レスポンス検証、DTO。
