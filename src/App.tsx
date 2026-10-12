@@ -50,7 +50,7 @@ const headings: Record<
     title: "Read Solana, directly.",
     eyebrow: "LIVE RPC WORKSPACE",
     description:
-      "Inspect public blockchain data through the Go backend, one request at a time.",
+      "Inspect public blockchain data directly from your browser, one request at a time.",
   },
   overview: {
     title: "DeFi, with context.",
@@ -414,9 +414,8 @@ export default function App() {
             <p>
               The accounting examples use local fixture transactions, addresses,
               execution results and evidence relationships. The optional Solana
-              RPC workspace makes read-only requests through a separately
-              running Go API. This application does not connect a wallet or
-              perform transfers.
+              RPC workspace makes read-only requests directly to Solana RPC.
+              This application does not connect a wallet or perform transfers.
             </p>
             <div className="note">
               <ShieldCheck size={18} />

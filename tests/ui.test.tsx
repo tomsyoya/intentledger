@@ -191,16 +191,35 @@ test("ui_rpc_loads_live_account_and_transaction_only_on_manual_request", async (
   const requests: string[] = [];
   const address = "11111111111111111111111111111111";
   const signature = "1".repeat(64);
-  mock.method(globalThis, "fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
-    requests.push(String(input));
-    const body = JSON.parse(String(init?.body));
-    const result = body.method === "getBalance"
-      ? {context: {slot:123}, value:1000000001}
-      : body.method === "getSignaturesForAddress"
-        ? [{signature, slot:123, err:null, memo:null, blockTime:null, confirmationStatus:"confirmed"}]
-        : {slot:123, blockTime:null, version:1, meta:{err:null,fee:5000}};
-    return Response.json({jsonrpc:"2.0", id:body.id, result});
-  });
+  mock.method(
+    globalThis,
+    "fetch",
+    async (input: RequestInfo | URL, init?: RequestInit) => {
+      requests.push(String(input));
+      const body = JSON.parse(String(init?.body));
+      const result =
+        body.method === "getBalance"
+          ? { context: { slot: 123 }, value: 1000000001 }
+          : body.method === "getSignaturesForAddress"
+            ? [
+                {
+                  signature,
+                  slot: 123,
+                  err: null,
+                  memo: null,
+                  blockTime: null,
+                  confirmationStatus: "confirmed",
+                },
+              ]
+            : {
+                slot: 123,
+                blockTime: null,
+                version: 1,
+                meta: { err: null, fee: 5000 },
+              };
+      return Response.json({ jsonrpc: "2.0", id: body.id, result });
+    },
+  );
   await click("Solana RPC");
   assert.equal(requests.length, 0);
   await fillRPC("rpc-address", address);
@@ -217,7 +236,11 @@ test("ui_rpc_loads_live_account_and_transaction_only_on_manual_request", async (
 });
 test("ui_rpc_shows_rpc_errors_without_displaying_fixture_results", async () => {
   mock.method(globalThis, "fetch", async (_, init?: RequestInit) =>
-    Response.json({jsonrpc:"2.0", id:JSON.parse(String(init?.body)).id,result:null}),
+    Response.json({
+      jsonrpc: "2.0",
+      id: JSON.parse(String(init?.body)).id,
+      result: null,
+    }),
   );
   await click("Solana RPC");
   await fillRPC("rpc-signature", "1".repeat(64));
@@ -225,4 +248,41 @@ test("ui_rpc_shows_rpc_errors_without_displaying_fixture_results", async () => {
   assert.match(text(), /Transaction not found on this cluster/);
   assert.ok(!html().querySelector(".rpc-transaction"));
   assert.ok(html().querySelector('[role="alert"]'));
+});
+
+test("ui_rpc_network_switch_resets_endpoint_and_live_results", async () => {
+  const endpoints: string[] = [];
+  mock.method(
+    globalThis,
+    "fetch",
+    async (input: RequestInfo | URL, init?: RequestInit) => {
+      endpoints.push(String(input));
+      return Response.json({
+        jsonrpc: "2.0",
+        id: JSON.parse(String(init?.body)).id,
+        result: "ok",
+      });
+    },
+  );
+  await click("Solana RPC");
+  const select = dom.window.document.getElementById(
+    "rpc-cluster",
+  ) as HTMLSelectElement;
+  const endpoint = dom.window.document.getElementById(
+    "rpc-base-url",
+  ) as HTMLInputElement;
+  assert.equal(select.value, "testnet");
+  assert.equal(endpoint.value, "https://api.testnet.solana.com");
+  assert.equal(endpoints.length, 0);
+  await click("Check RPC");
+  assert.match(text(), /RPC reachable · testnet/);
+  await act(async () => {
+    select.value = "localnet";
+    select.dispatchEvent(new dom.window.Event("change", { bubbles: true }));
+  });
+  assert.equal(endpoint.value, "http://127.0.0.1:8899");
+  assert.doesNotMatch(text(), /RPC reachable/);
+  assert.equal(endpoints.length, 1);
+  await click("Check RPC");
+  assert.equal(endpoints[1], "http://127.0.0.1:8899/");
 });

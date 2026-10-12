@@ -36,188 +36,275 @@ export class APIError extends Error {
     this.code = code;
   }
 }
-function object(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+export type Cluster = APIResult<unknown>["cluster"];
+export const RPC_ENDPOINTS: Record<Cluster, string> = {
+  localnet: "http://127.0.0.1:8899",
+  testnet: "https://api.testnet.solana.com",
+  devnet: "https://api.devnet.solana.com",
+};
+function object(v: unknown): v is Record<string, unknown> {
+  return typeof v === "object" && v !== null && !Array.isArray(v);
 }
-function integerString(value: unknown): value is string {
-  return typeof value === "string" && /^\d+$/.test(value);
-}
-function timestamp(value: unknown) {
-  return (
-    value === null ||
-    (typeof value === "number" &&
-      Number.isSafeInteger(value) &&
-      value >= 0 &&
-      value <= 8640000000000)
+function invalid(): never {
+  throw new APIError(
+    502,
+    "INVALID_RESPONSE",
+    "Solana RPC returned an invalid response.",
   );
 }
-function balance(value: unknown): value is LiveBalance {
-  return (
-    object(value) &&
-    typeof value.address === "string" &&
-    integerString(value.lamports) &&
-    integerString(value.slot) &&
-    typeof value.sol === "string" &&
-    /^\d+(\.\d{1,9})?$/.test(value.sol)
+function integer(v: unknown): string {
+  if (typeof v === "number" && Number.isSafeInteger(v) && v >= 0)
+    return String(v);
+  if (
+    typeof v === "string" &&
+    /^\d+$/.test(v) &&
+    BigInt(v) <= 18446744073709551615n
+  )
+    return v;
+  return invalid();
+}
+function blockTime(v: unknown): number | null {
+  if (v === null) return null;
+  if (
+    typeof v === "number" &&
+    Number.isSafeInteger(v) &&
+    v >= 0 &&
+    v <= 8640000000000
+  )
+    return v;
+  return invalid();
+}
+function publicKey(value: string, bytes: number) {
+  const alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+  if (!value || value.length > 88) return false;
+  let n = 0n;
+  for (const c of value) {
+    const digit = alphabet.indexOf(c);
+    if (digit < 0) return false;
+    n = n * 58n + BigInt(digit);
+  }
+  let size = 0;
+  while (n > 0n) {
+    size++;
+    n >>= 8n;
+  }
+  return size + (value.match(/^1*/)?.[0].length ?? 0) === bytes;
+}
+// Tokenize strings together with numbers, so digits inside strings are never rewritten.
+function parseExact(text: string): unknown {
+  return JSON.parse(
+    text.replace(
+      /"(?:[^"\\]|\\.)*"|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/g,
+      (token) =>
+        /^-?\d+$/.test(token) && !Number.isSafeInteger(Number(token))
+          ? JSON.stringify(token)
+          : token,
+    ),
   );
 }
-function signatures(value: unknown): value is LiveSignature[] {
-  return (
-    Array.isArray(value) &&
-    value.every(
-      (row) =>
-        object(row) &&
-        typeof row.signature === "string" &&
-        integerString(row.slot) &&
-        "err" in row &&
-        (row.memo === null || typeof row.memo === "string") &&
-        timestamp(row.blockTime) &&
-        (row.confirmationStatus === null ||
-          row.confirmationStatus === "confirmed" ||
-          row.confirmationStatus === "finalized"),
-    )
-  );
-}
-function transaction(value: unknown): value is LiveTransaction {
-  return (
-    object(value) &&
-    typeof value.signature === "string" &&
-    integerString(value.slot) &&
-    timestamp(value.blockTime) &&
-    ["confirmed", "failed", "unknown"].includes(String(value.status)) &&
-    (value.feeLamports === null || integerString(value.feeLamports)) &&
-    (value.version === "legacy" ||
-      value.version === 0 ||
-      value.version === 1) &&
-    typeof value.rawJSON === "string"
-  );
-}
-/** The Go service is the sole network boundary; fixture accounting never uses this adapter. */
+/** Read-only browser JSON-RPC boundary; fixture accounting is independent. */
 export function createSolanaAPI(
-  baseURL: string,
+  endpoint: string,
   fetcher: typeof fetch = globalThis.fetch,
+  cluster: Cluster = "testnet",
 ) {
   let url: URL;
   try {
-    url = new URL(baseURL);
+    url = new URL(endpoint);
   } catch {
-    throw new Error("Use an absolute HTTP(S) API server URL.");
+    throw new Error("Use an absolute HTTP(S) RPC URL.");
   }
   if (
     !["http:", "https:"].includes(url.protocol) ||
     url.username ||
     url.password ||
-    url.search ||
     url.hash
   )
-    throw new Error(
-      "Use an HTTP(S) API server URL without credentials or query parameters.",
-    );
-  const root = url.href.replace(/\/+$/, "");
-  async function get<T>(
-    path: string,
-    validate: (value: unknown) => value is T,
-    signal?: AbortSignal,
-  ): Promise<APIResult<T>> {
+    throw new Error("Use an HTTP(S) RPC URL without credentials or fragments.");
+  let nextId = 0;
+  async function call(method: string, params: unknown[], signal?: AbortSignal) {
     const controller = new AbortController();
     const abort = () => controller.abort();
     if (signal?.aborted) abort();
     else signal?.addEventListener("abort", abort, { once: true });
-    const timeout = globalThis.setTimeout(abort, 12000);
+    const timeout = setTimeout(abort, 12000);
+    const id = ++nextId;
     try {
       if (controller.signal.aborted)
-        throw new DOMException("Request cancelled", "AbortError");
-      const response = await fetcher(`${root}/api/v1/${path}`, {
-        method: "GET",
-        headers: { Accept: "application/json" },
+        throw new DOMException("Cancelled", "AbortError");
+      const response = await fetcher(url.href, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jsonrpc: "2.0", id, method, params }),
         signal: controller.signal,
       });
-      let payload: unknown;
-      try {
-        payload = await response.json();
-      } catch (failure) {
-        if (controller.signal.aborted) throw failure;
-        throw new APIError(
-          response.status || 502,
-          "INVALID_RESPONSE",
-          "The Go API did not return JSON. Check the API server URL.",
-        );
-      }
-      if (!response.ok) {
-        const detail =
-          object(payload) && object(payload.error) ? payload.error : {};
+      if (!response.ok)
         throw new APIError(
           response.status,
-          typeof detail.code === "string" ? detail.code : "API_ERROR",
-          typeof detail.message === "string"
-            ? detail.message
-            : `Go API request failed (${response.status}).`,
+          "RPC_HTTP_ERROR",
+          `RPC HTTP error (${response.status}). Check the endpoint or retry later.`,
         );
+      const raw = await response.text();
+      let payload: unknown;
+      try {
+        payload = parseExact(raw);
+      } catch {
+        return invalid();
       }
-      if (
-        !object(payload) ||
-        (payload.cluster !== "devnet" &&
-          payload.cluster !== "localnet" &&
-          payload.cluster !== "testnet") ||
-        payload.commitment !== "confirmed" ||
-        !validate(payload.data)
-      )
+      if (!object(payload) || payload.jsonrpc !== "2.0" || payload.id !== id)
+        return invalid();
+      if (object(payload.error))
         throw new APIError(
           502,
-          "INVALID_RESPONSE",
-          "The Go API returned an invalid response.",
+          "RPC_ERROR",
+          `RPC error (${String(payload.error.code)}). Check the cluster, input or provider limits.`,
         );
-      return {
-        data: payload.data,
-        cluster: payload.cluster,
-        commitment: payload.commitment,
-      };
+      if (!("result" in payload)) return invalid();
+      return { result: payload.result, raw };
     } catch (error) {
       if (error instanceof APIError) throw error;
       if (controller.signal.aborted) {
-        if (signal?.aborted)
-          throw new DOMException("Request cancelled", "AbortError");
+        if (signal?.aborted) throw new DOMException("Cancelled", "AbortError");
         throw new APIError(
           504,
-          "API_TIMEOUT",
-          "The Go API request timed out. Please try again.",
+          "RPC_TIMEOUT",
+          "Solana RPC request timed out. Please retry.",
         );
       }
       throw new APIError(
         0,
-        "API_UNREACHABLE",
-        "Could not reach the Go API. Start the backend or check the API server URL and allowed origins.",
+        "RPC_UNREACHABLE",
+        "Could not reach Solana RPC. Check the endpoint, network, CORS and browser mixed-content restrictions.",
       );
     } finally {
-      globalThis.clearTimeout(timeout);
+      clearTimeout(timeout);
       signal?.removeEventListener("abort", abort);
     }
   }
+  const wrap = <T>(data: T): APIResult<T> => ({
+    data,
+    cluster,
+    commitment: "confirmed",
+  });
+  const validate = (value: string, bytes: number) => {
+    if (!publicKey(value, bytes))
+      throw new APIError(
+        400,
+        "INVALID_INPUT",
+        `Invalid Solana ${bytes === 32 ? "address" : "signature"}.`,
+      );
+  };
   return {
-    health: (signal?: AbortSignal) =>
-      get(
-        "health",
-        (value): value is { status: "ok" } =>
-          object(value) && value.status === "ok",
+    health: async (signal?: AbortSignal) => {
+      const { result } = await call("getHealth", [], signal);
+      if (result !== "ok") return invalid();
+      return wrap({ status: "ok" as const });
+    },
+    balance: async (
+      address: string,
+      signal?: AbortSignal,
+    ): Promise<APIResult<LiveBalance>> => {
+      validate(address, 32);
+      const { result } = await call(
+        "getBalance",
+        [address, { commitment: "confirmed" }],
         signal,
-      ),
-    balance: (address: string, signal?: AbortSignal) =>
-      get(
-        `solana/balance?address=${encodeURIComponent(address)}`,
-        balance,
+      );
+      if (!object(result) || !object(result.context)) return invalid();
+      const lamports = integer(result.value);
+      const n = BigInt(lamports);
+      const fraction = (n % 1000000000n)
+        .toString()
+        .padStart(9, "0")
+        .replace(/0+$/, "");
+      return wrap({
+        address,
+        lamports,
+        sol: `${n / 1000000000n}${fraction ? "." + fraction : ""}`,
+        slot: integer(result.context.slot),
+      });
+    },
+    signatures: async (
+      address: string,
+      signal?: AbortSignal,
+    ): Promise<APIResult<LiveSignature[]>> => {
+      validate(address, 32);
+      const { result } = await call(
+        "getSignaturesForAddress",
+        [address, { limit: 10, commitment: "confirmed" }],
         signal,
-      ),
-    signatures: (address: string, signal?: AbortSignal) =>
-      get(
-        `solana/signatures?address=${encodeURIComponent(address)}&limit=10`,
-        signatures,
+      );
+      if (!Array.isArray(result)) return invalid();
+      return wrap(
+        result.map((row) => {
+          if (
+            !object(row) ||
+            typeof row.signature !== "string" ||
+            !publicKey(row.signature, 64) ||
+            !("err" in row) ||
+            (row.memo !== null && typeof row.memo !== "string") ||
+            ![null, "confirmed", "finalized"].includes(
+              row.confirmationStatus as string | null,
+            )
+          )
+            return invalid();
+          return {
+            signature: row.signature,
+            slot: integer(row.slot),
+            err: row.err,
+            memo: row.memo as string | null,
+            blockTime: blockTime(row.blockTime),
+            confirmationStatus:
+              row.confirmationStatus as LiveSignature["confirmationStatus"],
+          };
+        }),
+      );
+    },
+    transaction: async (
+      signature: string,
+      signal?: AbortSignal,
+    ): Promise<APIResult<LiveTransaction>> => {
+      validate(signature, 64);
+      const { result, raw } = await call(
+        "getTransaction",
+        [
+          signature,
+          {
+            encoding: "jsonParsed",
+            commitment: "confirmed",
+            maxSupportedTransactionVersion: 1,
+          },
+        ],
         signal,
-      ),
-    transaction: (signature: string, signal?: AbortSignal) =>
-      get(
-        `solana/transactions/${encodeURIComponent(signature)}`,
-        transaction,
-        signal,
-      ),
+      );
+      if (result === null)
+        throw new APIError(
+          404,
+          "TRANSACTION_NOT_FOUND",
+          "Transaction not found on this cluster. It may be pending or outside retained history.",
+        );
+      if (
+        !object(result) ||
+        !["legacy", 0, 1].includes(result.version as string | number) ||
+        (result.meta !== null && !object(result.meta))
+      )
+        return invalid();
+      const meta = result.meta;
+      if (object(meta) && !("err" in meta)) return invalid();
+      return wrap({
+        signature,
+        slot: integer(result.slot),
+        blockTime: blockTime(result.blockTime),
+        version: result.version as LiveTransaction["version"],
+        status:
+          meta === null
+            ? "unknown"
+            : object(meta) && meta.err === null
+              ? "confirmed"
+              : "failed",
+        feeLamports: object(meta) ? integer(meta.fee) : null,
+        rawJSON: raw,
+      });
+    },
   };
 }

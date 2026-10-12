@@ -3135,7 +3135,8 @@ tbody tr:last-child td {
   font-size: 10px;
   font-weight: 600;
 }
-.rpc-field input {
+.rpc-field input,
+.rpc-field select {
   display: block;
   width: 100%;
   background: #fcfbfe;
@@ -3149,7 +3150,8 @@ tbody tr:last-child td {
   color: #665578;
   min-width: 0;
 }
-.rpc-field input:focus {
+.rpc-field input:focus,
+.rpc-field select:focus {
   outline: 2px solid #c2afea;
   outline-offset: 1px;
 }

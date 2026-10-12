@@ -55,3 +55,23 @@ Then cluster is testnet and endpoint is https://api.testnet.solana.com
 Given explicit cluster / RPC settings
 When configuration is resolved
 Then flags take precedence over environment variables and invalid settings fail startup
+
+
+## Current browser-only RPC (supersedes Go API / deployment configuration above)
+User story: 利用者として、バックエンドを用意せずブラウザーから残高・取引を確認したい。静的サイトだけでプロトタイプを公開するため。
+
+Given a published website
+When the Solana RPC screen opens
+Then testnet is selected and no requests are sent
+
+Given a localhost website
+When the Solana RPC screen opens
+Then localnet is selected
+
+Given the user explicitly runs a lookup
+When RPC responds
+Then the browser displays live results without changing fixture classification
+
+Given the user switches networks
+When a new network is selected
+Then its default endpoint replaces the old endpoint and previous results are cleared

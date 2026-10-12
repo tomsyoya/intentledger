@@ -9,9 +9,10 @@ import {
   ShieldCheck,
   Wallet,
 } from "lucide-react";
-import { APIError, createSolanaAPI } from "../api/solana.ts";
+import { APIError, createSolanaAPI, RPC_ENDPOINTS } from "../api/solana.ts";
 import type {
   APIResult,
+  Cluster,
   LiveBalance,
   LiveSignature,
   LiveTransaction,
@@ -19,7 +20,13 @@ import type {
 import { Badge, Detail, PanelTitle, TxHash } from "../components/ui.tsx";
 
 export function SolanaRPC() {
-  const [baseURL, setBaseURL] = useState("http://localhost:8080");
+  const initialCluster: Cluster = ["localhost", "127.0.0.1", "[::1]"].includes(
+    window.location.hostname,
+  )
+    ? "localnet"
+    : "testnet";
+  const [cluster, setCluster] = useState<Cluster>(initialCluster);
+  const [baseURL, setBaseURL] = useState(RPC_ENDPOINTS[initialCluster]);
   const [address, setAddress] = useState("");
   const [signature, setSignature] = useState("");
   const [account, setAccount] = useState<{
@@ -61,7 +68,10 @@ export function SolanaRPC() {
     controller.current = pending;
     setLoading(kind);
     try {
-      const apply = await run(createSolanaAPI(baseURL.trim()), pending.signal);
+      const apply = await run(
+        createSolanaAPI(baseURL.trim(), globalThis.fetch, cluster),
+        pending.signal,
+      );
       if (generation.current === current) apply();
     } catch (failure) {
       if (generation.current === current)
@@ -112,19 +122,19 @@ export function SolanaRPC() {
         <div>
           <strong>Read-only Solana access</strong>
           <p>
-            Query your configured Solana cluster through your Go API. Live reads
-            do not create semantic records or change fixture accounting.
+            Query Solana directly from your browser. Live reads do not create
+            semantic records or change fixture accounting.
           </p>
         </div>
-        <Badge tone="purple">Optional backend</Badge>
+        <Badge tone="purple">No backend required</Badge>
       </div>
       <section className="panel rpc-connection">
         <PanelTitle
           icon={Server}
-          title="Connect your Go API"
+          title="Connect to Solana RPC"
           right={
             connection ? (
-              <Badge tone="green">API reachable · {connection}</Badge>
+              <Badge tone="green">RPC reachable · {connection}</Badge>
             ) : (
               <Badge>Not checked</Badge>
             )
@@ -132,7 +142,27 @@ export function SolanaRPC() {
         />
         <div className="rpc-connection-body">
           <div className="rpc-field">
-            <label htmlFor="rpc-base-url">API server URL</label>
+            <label htmlFor="rpc-cluster">Network</label>
+            <select
+              id="rpc-cluster"
+              value={cluster}
+              onChange={(event) => {
+                cancel();
+                const next = event.currentTarget.value as Cluster;
+                setCluster(next);
+                setBaseURL(RPC_ENDPOINTS[next]);
+                setAccount(null);
+                setTransaction(null);
+                setConnection(null);
+              }}
+            >
+              <option value="localnet">Localnet</option>
+              <option value="testnet">Testnet</option>
+              <option value="devnet">Devnet</option>
+            </select>
+          </div>
+          <div className="rpc-field">
+            <label htmlFor="rpc-base-url">RPC endpoint URL</label>
             <input
               id="rpc-base-url"
               type="url"
@@ -148,8 +178,9 @@ export function SolanaRPC() {
               }}
             />
             <small>
-              Local default: http://localhost:8080 · GitHub Pages needs a
-              separately hosted HTTPS API.
+              Browser requests require RPC CORS support. Use HTTPS on published
+              sites. Custom URLs must match the selected network; never enter
+              secret API keys.
             </small>
           </div>
           <button
@@ -163,7 +194,7 @@ export function SolanaRPC() {
             }}
           >
             <Link2 size={15} />
-            {loading === "health" ? "Checking…" : "Check API"}
+            {loading === "health" ? "Checking…" : "Check RPC"}
           </button>
         </div>
       </section>
@@ -389,7 +420,7 @@ export function SolanaRPC() {
           </dl>
           <div className="rpc-json-heading">
             <Code2 size={15} />
-            Parsed RPC result · original JSON, integer precision preserved
+            Original JSON-RPC response · integer precision preserved
           </div>
           <pre className="rpc-json">
             <code>{transaction.data.rawJSON}</code>

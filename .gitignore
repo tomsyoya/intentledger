@@ -6,6 +6,3 @@ playwright-report/
 .DS_Store
 
 .test-build/
-
-backend/bin/
-backend/server
