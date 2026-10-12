@@ -1,0 +1,115 @@
+
+> intentledger@0.1.0 test:unit
+> node --test tests/*.test.ts
+
+✔ classification_bridge_correlates_both_chains (0.527375ms)
+✔ classification_rejects_mismatched_wallet_request (0.352208ms)
+✔ classification_failed_execution_never_reports_success (0.090583ms)
+✔ fixtures_four_actions_have_seven_transactions_four_protocols (1.178084ms)
+✔ fixtures_solana_wallets_and_signatures_have_valid_base58_lengths (0.273667ms)
+✖ rpc_balance_posts_directly_and_preserves_uint64 (1.340042ms)
+✖ rpc_rejects_invalid_input_before_fetch (0.306917ms)
+✖ rpc_handles_null_transaction_rpc_errors_and_malformed_data (12.131917ms)
+✖ rpc_network_failure_mentions_cors_without_fixture_fallback (0.120375ms)
+✖ rpc_transaction_preserves_original_json_and_execution (0.084292ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 5
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 87.563625
+
+✖ failing tests:
+
+test at tests/solana-api.test.ts:5:1
+✖ rpc_balance_posts_directly_and_preserves_uint64 (1.340042ms)
+  Error [APIError]: Could not reach the Go API. Start the backend or check the API server URL and allowed origins.
+      at get (file:///Users/soya/myproject/solana-workshop/intentledger/src/api/solana.ts:186:13)
+      at async TestContext.<anonymous> (file:///Users/soya/myproject/solana-workshop/intentledger/tests/solana-api.test.ts:14:17)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    status: 0,
+    code: 'API_UNREACHABLE'
+  }
+
+test at tests/solana-api.test.ts:20:1
+✖ rpc_rejects_invalid_input_before_fetch (0.306917ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /address/i. Input:
+  
+  'APIError: Could not reach the Go API. Start the backend or check the API server URL and allowed origins.'
+  
+      at async TestContext.<anonymous> (file:///Users/soya/myproject/solana-workshop/intentledger/tests/solana-api.test.ts:22:2)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: APIError: Could not reach the Go API. Start the backend or check the API server URL and allowed origins.
+        at get (file:///Users/soya/myproject/solana-workshop/intentledger/src/api/solana.ts:186:13)
+        at async waitForActual (node:assert:646:5)
+        at async strict.rejects (node:assert:769:25)
+        at async TestContext.<anonymous> (file:///Users/soya/myproject/solana-workshop/intentledger/tests/solana-api.test.ts:22:2)
+        at async Test.run (node:internal/test_runner/test:1113:7)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:788:7),
+    expected: /address/i,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/solana-api.test.ts:26:1
+✖ rpc_handles_null_transaction_rpc_errors_and_malformed_data (12.131917ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /not found/i. Input:
+  
+  'APIError: Could not reach the Go API. Start the backend or check the API server URL and allowed origins.'
+  
+      at async TestContext.<anonymous> (file:///Users/soya/myproject/solana-workshop/intentledger/tests/solana-api.test.ts:29:2)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: APIError: Could not reach the Go API. Start the backend or check the API server URL and allowed origins.
+        at get (file:///Users/soya/myproject/solana-workshop/intentledger/src/api/solana.ts:186:13)
+        at async waitForActual (node:assert:646:5)
+        at async strict.rejects (node:assert:769:25)
+        at async TestContext.<anonymous> (file:///Users/soya/myproject/solana-workshop/intentledger/tests/solana-api.test.ts:29:2)
+        at async Test.run (node:internal/test_runner/test:1113:7)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:788:7),
+    expected: /not found/i,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/solana-api.test.ts:34:1
+✖ rpc_network_failure_mentions_cors_without_fixture_fallback (0.120375ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /CORS/. Input:
+  
+  'APIError: Could not reach the Go API. Start the backend or check the API server URL and allowed origins.'
+  
+      at async TestContext.<anonymous> (file:///Users/soya/myproject/solana-workshop/intentledger/tests/solana-api.test.ts:36:2)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: APIError: Could not reach the Go API. Start the backend or check the API server URL and allowed origins.
+        at get (file:///Users/soya/myproject/solana-workshop/intentledger/src/api/solana.ts:186:13)
+        at async waitForActual (node:assert:646:5)
+        at async strict.rejects (node:assert:769:25)
+        at async TestContext.<anonymous> (file:///Users/soya/myproject/solana-workshop/intentledger/tests/solana-api.test.ts:36:2)
+        at async Test.run (node:internal/test_runner/test:1113:7)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:788:7),
+    expected: /CORS/,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/solana-api.test.ts:38:1
+✖ rpc_transaction_preserves_original_json_and_execution (0.084292ms)
+  Error [APIError]: Could not reach the Go API. Start the backend or check the API server URL and allowed origins.
+      at get (file:///Users/soya/myproject/solana-workshop/intentledger/src/api/solana.ts:186:13)
+      at async TestContext.<anonymous> (file:///Users/soya/myproject/solana-workshop/intentledger/tests/solana-api.test.ts:45:10)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    status: 0,
+    code: 'API_UNREACHABLE'
+  }

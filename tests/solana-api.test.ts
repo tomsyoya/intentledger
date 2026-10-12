@@ -2,120 +2,48 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createSolanaAPI } from "../src/api/solana.ts";
 const address = "11111111111111111111111111111111";
-const envelope = (data: unknown) => ({
-  data,
-  cluster: "devnet",
-  commitment: "confirmed",
+test("rpc_balance_posts_directly_and_preserves_uint64", async () => {
+ const api = createSolanaAPI("https://api.testnet.solana.com", async (url, init) => {
+ assert.equal(String(url), "https://api.testnet.solana.com/");
+ assert.equal(init?.method, "POST");
+ const body = JSON.parse(String(init?.body));
+ assert.equal(body.method, "getBalance");
+ assert.deepEqual(body.params, [address, {commitment:"confirmed"}]);
+ return new Response('{"jsonrpc":"2.0","id":'+body.id+',"result":{"context":{"slot":9007199254740993},"value":18446744073709551615}}');
+ }, "testnet");
+ const result = await api.balance(address);
+ assert.equal(result.data.lamports,"18446744073709551615");
+ assert.equal(result.data.sol,"18446744073.709551615");
+ assert.equal(result.data.slot,"9007199254740993");
+ assert.equal(result.cluster,"testnet");
 });
-test("solana_api_balance_preserves_strings_and_uses_go_endpoint", async () => {
-  let requested = "";
-  const api = createSolanaAPI("http://localhost:8080/", async (input, init) => {
-    requested = String(input);
-    assert.equal(init?.method, "GET");
-    assert.ok(init?.signal);
-    return Response.json(
-      envelope({
-        address,
-        lamports: "18446744073709551615",
-        sol: "18446744073.709551615",
-        slot: "9007199254740993",
-      }),
-    );
-  });
-  const result = await api.balance(address);
-  assert.equal(
-    requested,
-    `http://localhost:8080/api/v1/solana/balance?address=${address}`,
-  );
-  assert.equal(result.data.lamports, "18446744073709551615");
-  assert.equal(result.cluster, "devnet");
+test("rpc_rejects_invalid_input_before_fetch", async () => {
+ const api = createSolanaAPI("http://127.0.0.1:8899",async()=>{throw Error("must not fetch")}, "localnet");
+ await assert.rejects(api.balance("invalid"), /address/i);
+ await assert.rejects(api.transaction("abc"), /signature/i);
+ assert.throws(()=>createSolanaAPI("file:///tmp/rpc"), /HTTP/);
 });
-test("solana_api_errors_keep_http_status_and_api_code", async () => {
-  const api = createSolanaAPI("https://api.example.test", async () =>
-    Response.json(
-      {
-        error: {
-          code: "TRANSACTION_NOT_FOUND",
-          message: "Transaction not found on this cluster.",
-        },
-      },
-      { status: 404 },
-    ),
-  );
-  await assert.rejects(
-    api.transaction("1".repeat(64)),
-    (error: unknown) =>
-      error instanceof Error &&
-      "status" in error &&
-      error.status === 404 &&
-      "code" in error &&
-      error.code === "TRANSACTION_NOT_FOUND",
-  );
+test("rpc_handles_null_transaction_rpc_errors_and_malformed_data", async () => {
+ for (const result of [null, {slot:-1}]) {
+ const api = createSolanaAPI("https://api.testnet.solana.com",async(_,init)=>Response.json({jsonrpc:"2.0", id:JSON.parse(String(init?.body)).id,result}));
+ await assert.rejects(api.transaction("1".repeat(64)),result === null ? /not found/i : /invalid response/i);
+ }
+ const api = createSolanaAPI("https://api.testnet.solana.com",async(_,init)=>Response.json({jsonrpc:"2.0",id:JSON.parse(String(init?.body)).id,error:{code:-32602,message:"Invalid params"}}));
+ await assert.rejects(api.balance(address), /RPC error/);
 });
-test("solana_api_rejects_invalid_base_and_malformed_success_data", async () => {
-  assert.throws(() => createSolanaAPI("file:///tmp/rpc"), /HTTP/);
-  const api = createSolanaAPI("https://api.example.test", async () =>
-    Response.json(
-      envelope({ address, lamports: 9007199254740992, sol: "1", slot: "1" }),
-    ),
-  );
-  await assert.rejects(api.balance(address), /invalid response/i);
+test("rpc_network_failure_mentions_cors_without_fixture_fallback", async () => {
+ const api = createSolanaAPI("https://api.testnet.solana.com", async()=>{throw TypeError("Failed to fetch")});
+ await assert.rejects(api.balance(address), /CORS/);
 });
-test("solana_api_network_failure_is_actionable_without_fixture_fallback", async () => {
-  const api = createSolanaAPI("http://localhost:8080", async () => {
-    throw new TypeError("Failed to fetch");
-  });
-  await assert.rejects(api.balance(address), /Go API/);
-});
-test("solana_api_signatures_and_transaction_preserve_raw_json", async () => {
-  const sig = "1".repeat(64);
-  const rawJSON = '{"slot":9007199254740993}';
-  const api = createSolanaAPI(
-    "https://api.example.test/service",
-    async (input) =>
-      String(input).includes("/signatures?")
-        ? Response.json(envelope([]))
-        : Response.json(
-            envelope({
-              signature: sig,
-              slot: "9007199254740993",
-              blockTime: null,
-              status: "unknown",
-              feeLamports: null,
-              version: "legacy",
-              rawJSON,
-            }),
-          ),
-  );
-  assert.deepEqual((await api.signatures(address)).data, []);
-  assert.equal((await api.transaction(sig)).data.rawJSON, rawJSON);
-});
-
-test("solana_api_rejects_unsafe_block_time_before_rendering", async () => {
-  const api = createSolanaAPI("http://localhost:8080", async () =>
-    Response.json(
-      envelope([
-        {
-          signature: "1".repeat(64),
-          slot: "1",
-          err: null,
-          memo: null,
-          blockTime: 9007199254740000,
-          confirmationStatus: "confirmed",
-        },
-      ]),
-    ),
-  );
-  await assert.rejects(api.signatures(address), /invalid response/i);
-});
-
-test("solana_api_accepts_testnet_cluster_from_backend", async () => {
-  const api = createSolanaAPI("http://localhost:8080", async () =>
-    Response.json({
-      data: { status: "ok" },
-      cluster: "testnet",
-      commitment: "confirmed",
-    }),
-  );
-  assert.equal((await api.health()).cluster, "testnet");
+test("rpc_transaction_preserves_original_json_and_execution", async () => {
+ const api = createSolanaAPI("https://api.testnet.solana.com",async(_,init)=>{
+ const body=JSON.parse(String(init?.body));
+ assert.equal(body.method,"getTransaction");
+ assert.equal(body.params[1].encoding,"jsonParsed");
+ return new Response('{"jsonrpc":"2.0","id":'+body.id+',"result":{"slot":9007199254740993,"blockTime":null,"version":0,"meta":{"err":null,"fee":5000}}}');
+ });
+ const r=await api.transaction("1".repeat(64));
+ assert.equal(r.data.status,"confirmed");
+ assert.equal(r.data.feeLamports,"5000");
+ assert.match(r.data.rawJSON,/9007199254740993/);
 });

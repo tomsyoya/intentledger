@@ -191,32 +191,15 @@ test("ui_rpc_loads_live_account_and_transaction_only_on_manual_request", async (
   const requests: string[] = [];
   const address = "11111111111111111111111111111111";
   const signature = "1".repeat(64);
-  mock.method(globalThis, "fetch", async (input: RequestInfo | URL) => {
-    const url = String(input);
-    requests.push(url);
-    const data = url.includes("/balance?")
-      ? { address, lamports: "1000000001", sol: "1.000000001", slot: "123" }
-      : url.includes("/signatures?")
-        ? [
-            {
-              signature,
-              slot: "123",
-              err: null,
-              memo: null,
-              blockTime: null,
-              confirmationStatus: "confirmed",
-            },
-          ]
-        : {
-            signature,
-            slot: "123",
-            blockTime: null,
-            status: "confirmed",
-            feeLamports: "5000",
-            version: 1,
-            rawJSON: '{"slot":123}',
-          };
-    return Response.json({ data, cluster: "devnet", commitment: "confirmed" });
+  mock.method(globalThis, "fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
+    requests.push(String(input));
+    const body = JSON.parse(String(init?.body));
+    const result = body.method === "getBalance"
+      ? {context: {slot:123}, value:1000000001}
+      : body.method === "getSignaturesForAddress"
+        ? [{signature, slot:123, err:null, memo:null, blockTime:null, confirmationStatus:"confirmed"}]
+        : {slot:123, blockTime:null, version:1, meta:{err:null,fee:5000}};
+    return Response.json({jsonrpc:"2.0", id:body.id, result});
   });
   await click("Solana RPC");
   assert.equal(requests.length, 0);
@@ -232,17 +215,9 @@ test("ui_rpc_loads_live_account_and_transaction_only_on_manual_request", async (
   await click("Accounting ledger1");
   assert.equal(html().querySelectorAll(".review-row").length, 2);
 });
-test("ui_rpc_shows_backend_errors_without_displaying_fixture_results", async () => {
-  mock.method(globalThis, "fetch", async () =>
-    Response.json(
-      {
-        error: {
-          code: "TRANSACTION_NOT_FOUND",
-          message: "Transaction not found on this cluster.",
-        },
-      },
-      { status: 404 },
-    ),
+test("ui_rpc_shows_rpc_errors_without_displaying_fixture_results", async () => {
+  mock.method(globalThis, "fetch", async (_, init?: RequestInit) =>
+    Response.json({jsonrpc:"2.0", id:JSON.parse(String(init?.body)).id,result:null}),
   );
   await click("Solana RPC");
   await fillRPC("rpc-signature", "1".repeat(64));
